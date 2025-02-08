@@ -347,7 +347,7 @@ nav li a {
     }
 
     .my-hero {
-        background-image: url('https://faizan-26.github.io/homie-do/assets/landing-bg.jpg');
+        background-image: url('https://cdn.jsdelivr.net/gh/faizan-26/homie-do/assets/landing-bg.jpg');
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
