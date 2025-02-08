@@ -1,0 +1,384 @@
+/* Colors used:
+   #fff
+   #111
+   #FF6347
+*/
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+nav {
+    background-color: #fff;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Adds shadow for better visibility */
+    transition: all 0.3s ease-in-out;
+}
+
+nav ul {
+    list-style-type: none;
+    padding: 0;
+    margin-top: 20px;
+}
+nav li {
+    display: inline-block;
+}
+nav li a {
+    color: #111;
+    padding: 12px 16px;
+    text-decoration: none;
+}
+.my-heading {
+    color: #FF6347 !important;
+    font-size: 24px;
+    margin: 0;
+    font-weight: bolder;
+    /* padding: 20px; */
+}
+.mynav-item{
+    color: #FF6347;
+}
+
+.desktop-navbar {
+    display: flex; 
+    justify-content: space-between;
+}
+.fa-bars {
+    display: none;
+    cursor: pointer;
+}
+
+.right-hero-section{
+    position: relative;
+}
+.right-hero-section::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, rgba(255,245,233,1) 0%, rgba(255,245,233,0) 100%);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.left-hero-section {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    
+    padding-left: 5%;   
+}
+
+.my-hero {
+    background-color: #fff5e9;
+    display: flex;
+    height: 60vh;
+    width: 100%;
+    justify-content: end;
+    align-items: center;
+}
+.right-hero-section img {
+    height: 60vh;
+    width: 80vw;
+    object-fit: cover;
+    display: block;
+    /* object-fit: fill; */
+}
+
+/* Ensure the SVG fits the card */
+.card-svg {
+    width: 100%; /* Make SVG responsive */
+    height: auto; /* Maintain aspect ratio */
+    max-height: 200px; /* Adjust based on your design */
+    padding: 20px; /* Add some padding around the SVG */
+}
+
+/* Card styling */
+.my-card .card {
+    border: 1px solid #ddd; /* Add a border */
+    border-radius: 10px; /* Rounded corners */
+    overflow: hidden; /* Ensure content stays within the card */
+    align-items: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover effect */
+}
+
+.my-card .card:hover {
+    transform: translateY(-5px); /* Lift card on hover */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Add shadow on hover */
+}
+
+/* Center card content */
+.card-body {
+    text-align: center;
+    padding: 20px;
+}
+
+.card-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #111; /* Dark text color */
+}
+
+.card-text {
+    font-size: 1rem;
+    color: #555; /* Slightly lighter text color */
+}
+
+
+.my-card-list{
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+.my-card-item{
+   
+    margin: 15px; 
+    
+    text-align: center;
+}
+
+
+/* GET STARTED */
+.my-get-started {
+    position: relative;       /* Establish positioning context */
+    overflow: hidden;        
+    /* background-color: #fff5e9;  */
+    border-radius: 30px;
+    padding: 50px 0;
+    margin-top: 30px;
+    text-align: center;
+    width: 100%;
+}
+  
+  /* Position the picture as a background image */
+.bg-image {
+   
+     margin-top: 25px;
+     border-radius: 10px;
+     position: absolute;
+     top: 0px;
+     left: 0px;
+     height: 100%;
+     overflow: hidden;
+     z-index: -100;
+     width: calc(100% - 3rem);
+     margin-left: calc(1.5rem);
+  }
+
+  .get-started-content {
+     display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-left: 10%;
+    margin-right: 10%;
+}
+  
+.mybtn {
+    background-color: #FF6347;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-top: 10px;
+    text-decoration: none;
+    transition: all 0.3s ease-in-out;
+    z-index: 999;
+}
+.mybtn:hover {
+    color: white;
+    font-weight: 500;
+    background-color: #FF6347;
+    transform: scale(1.1);
+}
+.nav-mybtn{
+    background-color: #FF6347;
+    color: white;
+    /* padding: 10px 20px; */
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-top: 10px;
+    text-decoration: none;
+    transition: all 0.3s ease-in-out;
+}
+.nav-mybtn:hover {
+    color: white;
+    font-weight: 500;
+    background-color: #FF6347;
+    transform: scale(1.1);
+}
+.stats {
+    display: flex;
+    justify-content: center;
+    margin-top: 50px;
+    align-items: center;
+}
+.stats lottie-player {
+    width: 80%;
+    height: 400px;
+}
+
+
+/* FOOTER */
+/* Footer Styles */
+.footer {
+    background-color: #fff5e9; /* Light background */
+    position: relative;
+    color: #111;
+    overflow: hidden;
+  }
+  
+  .footer .wave {
+    position: absolute;
+    top: -1px;
+    left: 0;
+    width: 100%;
+    overflow: hidden;
+    line-height: 0;
+  }
+  
+  .footer .wave svg {
+    position: relative;
+    display: block;
+    width: calc(100% + 1.3px);
+    height: 100px;
+  }
+  
+  .footer-content {
+    padding: 100px 0 30px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .footer h5 {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: #FF6347;
+  }
+  
+  .footer p,
+  .footer ul {
+    font-size: 0.95rem;
+    color: #111;
+  }
+  
+  .footer ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .footer ul li {
+    margin-bottom: 10px;
+  }
+  
+  .footer ul li i {
+    margin-right: 8px;
+    color: #FF6347;
+  }
+  
+  .footer .list-inline-item a {
+    color: #FF6347;
+    font-size: 1.2rem;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+  
+  .footer .list-inline-item a:hover {
+    color: #111;
+  }
+  
+  .footer-bottom {
+    background-color: #fff5e9;
+    border-top: 1px solid rgba(17, 17, 17, 0.2);
+  }
+  
+  /* Responsive Adjustments */
+  @media (max-width: 767.98px) {
+    .footer-content {
+      padding: 60px 0 20px;
+    }
+    .footer h5,
+    .footer p,
+    .footer ul {
+      text-align: center;
+    }
+  }
+  
+
+
+@media (max-width: 576px) {
+    .left-hero-section {
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        /* width: 100vh; */
+        justify-items: center;
+        /* justify-content: center; */
+        text-align: center;
+        padding-right: 5%;
+        background-color: none !;
+}
+.stats{
+    flex-direction: column;
+    text-align: center;
+}
+.stats lottie-player {
+    width: 100%;
+}
+    .right-hero-section {
+        display: none;
+        /* position: absolute; */
+        /* top: 0; left: 0; */
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(to bottom, rgba(255,245,233,1) 0%, rgba(255,245,233,0) 100%);
+        pointer-events: none;
+        z-index: -10;
+    }
+
+    .my-hero {
+        background-image: url('../assets/landing-bg.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        position: relative;
+        height: 35vh;
+    }
+    .my-hero::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #fff5e9;
+        opacity: 0.9;
+        backdrop-filter: blur(20px);
+        z-index: 1;
+    }
+    .my-hero > * {
+        position: relative;
+        z-index: 2;
+    }
+
+
+  
+}
+
+@media (min-width: 992px) {
+    .my-get-started {
+        /* width: 100%; */
+        margin: 0 auto;
+    }
+
+}
