@@ -5,3 +5,7 @@ WEB ASSIGNMENT # 1
 **NAME : Faizan Tariq**
 
 PREPARE A LANDING PAGE
+
+**URL:** 
+
+https://faizan-26.github.io/homie-do/
