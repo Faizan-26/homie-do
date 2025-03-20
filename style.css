@@ -1,6 +1,12 @@
 body {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-family: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    line-height: 1.6;
+    overflow-x: hidden;
 }
+
 nav {
     background-color: #fff;
     position: fixed;
@@ -8,8 +14,13 @@ nav {
     top: 0;
     left: 0;
     z-index: 1000;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
     transition: all 0.3s ease-in-out;
+    padding: 0.5rem 0;
+}
+
+.container-fluid {
+    padding: 0 2.5rem;
 }
 
 nav ul {
@@ -17,21 +28,33 @@ nav ul {
     padding: 0;
     margin-top: 20px;
 }
+
 nav li {
     display: inline-block;
+    margin: 0 0.2rem;
 }
+
 nav li a {
     color: #111;
     padding: 12px 16px;
     text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
 }
+
+nav li a:hover {
+    color: #FF6347;
+}
+
 .my-heading {
     color: #FF6347 !important;
-    font-size: 24px;
+    font-size: 28px;
     margin: 0;
-    font-weight: bolder;
+    font-weight: 700;
+    letter-spacing: -0.5px;
 }
-.mynav-item{
+
+.mynav-item {
     color: #FF6347;
 }
 
@@ -39,18 +62,63 @@ nav li a {
     display: flex; 
     justify-content: space-between;
 }
+
 .fa-bars {
     display: none;
     cursor: pointer;
 }
 
-.right-hero-section{
-    position: relative;
+/* Hero section styling */
+.my-hero {
+    background-color: #fff5e9;
+    display: flex;
+    min-height: 70vh;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    /* padding-top: 0rem; */
 }
+
+.left-hero-section {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding-left: 8%;
+    padding-right: 2rem;
+    flex: 1;
+}
+
+.left-hero-section h2.my-heading {
+    font-size: 4rem; 
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+    color: #333;
+}
+
+.left-hero-section p {
+    font-size: 1.6rem; 
+    line-height: 1.6;
+    font-weight: 400;
+    margin-top: 1rem;
+    max-width: 90%;
+    color: #555;
+}
+
+.right-hero-section {
+    position: relative;
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    height: 100%;
+}
+
 .right-hero-section::before {
     content: "";
     position: absolute;
-    top: 0; left: 0;
+    top: 0; 
+    left: 0;
     width: 100%;
     height: 100%;
     background: linear-gradient(to right, rgba(255,245,233,1) 0%, rgba(255,245,233,0) 100%);
@@ -58,297 +126,513 @@ nav li a {
     z-index: 2;
 }
 
-.left-hero-section {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    padding-left: 5%;   
-}
-
-.left-hero-section h2.my-heading {
-    font-size: 3.2rem;
-    font-weight: 700;
-    margin-bottom: 1.5rem;
-    line-height: 1.2;
-    letter-spacing: -0.5px;
-}
-
-.left-hero-section p {
-    font-size: 1.4rem;
-    line-height: 1.6;
-    font-weight: 400;
-    margin-top: 1rem;
-    max-width: 90%;
-}
-
-.my-hero {
-    background-color: #fff5e9;
-    display: flex;
-    height: 60vh;
-    width: 100%;
-    justify-content: end;
-    align-items: center;
-}
 .right-hero-section img {
-    height: 60vh;
-    width: 80vw;
+    height: 70vh;
+    width: 100%;
     object-fit: cover;
     display: block;
 }
 
-.card-svg {
-    width: 100%;
-    height: auto;
-    max-height: 200px;
-    padding: 20px;
+/* Quote styling */
+.hero-quote {
+    padding: 4rem 5rem;
+    text-align: center;
+    font-weight: 500;
+    font-style: italic;
+    font-size: 1.7rem;
+    line-height: 1.6;
+    color: #333;
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+    background-color: #f9f9f9;
+    border-radius: 1rem;
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+}
+
+.hero-quote p {
+    position: relative;
+    margin: 0;
+}
+
+.hero-quote p::before,
+.hero-quote p::after {
+    content: '"';
+    font-size: 3.5rem;
+    color: #FF6347;
+    opacity: 0.3;
+    position: absolute;
+    font-family: Georgia, serif;
+}
+
+.hero-quote p::before {
+    left: -30px;
+    top: -20px;
+}
+
+.hero-quote p::after {
+    right: -30px;
+    bottom: -40px;
+}
+
+/* Card section styling */
+.my-card-list {
+    padding: 3rem 0 5rem;
+}
+
+.my-card-list h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+    color: #333;
+    font-weight: 700;
 }
 
 .my-card .card {
-    border: 1px solid #ddd;
-    border-radius: 10px;
+    border: 1px solid #eee;
+    border-radius: 15px;
     overflow: hidden;
     align-items: center;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.03);
 }
 
 .my-card .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transform: translateY(-10px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.card-img-top {
+    padding: 1.5rem;
+    object-fit: contain;
+    height: 220px;
 }
 
 .card-body {
     text-align: center;
-    padding: 20px;
+    padding: 1.5rem 2rem 2rem;
 }
 
 .card-title {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     font-weight: bold;
-    margin-bottom: 15px;
+    margin-bottom: 1rem;
     color: #111;
 }
 
 .card-text {
-    font-size: 1rem;
+    font-size: 1.05rem;
     color: #555;
+    line-height: 1.6;
 }
 
-
-.my-card-list{
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-}
-.my-card-item{
-   
-    margin: 15px; 
-    
-    text-align: center;
-}
-
-
+/* Get Started section */
 .my-get-started {
     position: relative;
     overflow: hidden;
     border-radius: 30px;
-    padding: 50px 0;
-    margin-top: 30px;
+    padding: 80px 0;
+    margin: 4rem auto 5rem;
     text-align: center;
-    width: 100%;
+    width: 90%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
 }
   
 .bg-image {
-   
-     margin-top: 25px;
-     border-radius: 10px;
-     position: absolute;
-     top: 0px;
-     left: 0px;
-     height: 100%;
-     overflow: hidden;
-     z-index: -100;
-     width: calc(100% - 3rem);
-     margin-left: calc(1.5rem);
-  }
+    margin-top: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: -100;
+    object-fit: cover;
+}
 
-  .get-started-content {
-     display: flex;
+.get-started-content {
+    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin-left: 10%;
-    margin-right: 10%;
+    margin: 0 auto;
+    max-width: 900px; /* Increased from 700px */
+    padding: 0 2rem;
+    width: 100%;
+}
+
+.get-started-content h2 {
+    font-size: 2.8rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+    font-weight: 700;
+    text-align: center;
+    width: 100%;
+}
+
+.get-started-content p {
+    font-size: 1.3rem;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+    text-align: center;
+    max-width: 800px; /* Added max-width for better control */
+    width: 100%;
 }
   
 .mybtn {
     background-color: #FF6347;
     color: white;
-    padding: 10px 20px;
+    padding: 0.8rem 2rem;
     border: none;
-    border-radius: 15px;
+    border-radius: 30px;
     cursor: pointer;
-    font-size: 1rem;
-    margin-top: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 1.5rem;
     text-decoration: none;
     transition: all 0.3s ease-in-out;
     z-index: 999;
+    box-shadow: 0 4px 15px rgba(255, 99, 71, 0.3);
 }
+
 .mybtn:hover {
     color: white;
-    font-weight: 500;
-    background-color: #FF6347;
-    transform: scale(1.1);
+    font-weight: 600;
+    background-color: #e53d27;
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(255, 99, 71, 0.4);
 }
-.nav-mybtn{
+
+.nav-mybtn {
     background-color: #FF6347;
     color: white;
     border: none;
     border-radius: 8px;
+    padding: 0.5rem 1.2rem;
     cursor: pointer;
     font-size: 1rem;
-    margin-top: 10px;
+    font-weight: 500;
+    margin-top: 0;
     text-decoration: none;
     transition: all 0.3s ease-in-out;
     display: inline-block;
-    width: auto;
+    box-shadow: 0 3px 10px rgba(255, 99, 71, 0.2);
 }
+
 .nav-mybtn:hover {
     color: white;
-    font-weight: 500;
-    background-color: #FF6347;
-    transform: scale(1.1);
+    background-color: #e53d27;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 99, 71, 0.3);
 }
+
+/* Stats section */
 .stats {
     display: flex;
     justify-content: center;
-    margin-top: 50px;
+    margin: 5rem auto;
     align-items: center;
+    padding: 0 2rem;
+    max-width: 1200px;
+    gap: 2rem;
 }
+
 .stats lottie-player {
-    width: 80%;
+    width: 400px;
     height: 400px;
+    flex-shrink: 0;
 }
 
+.stats h3 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #333;
+    max-width: 500px;
+    text-align: left;
+    line-height: 1.4;
+}
 
+/* Footer styling */
 .footer {
     background-color: #fff5e9;
     position: relative;
     color: #111;
     overflow: hidden;
-  }
+    padding-top: 1rem;
+}
   
-  .footer .wave {
+.footer .wave {
     position: absolute;
     top: -1px;
     left: 0;
     width: 100%;
     overflow: hidden;
     line-height: 0;
-  }
+}
   
-  .footer .wave svg {
+.footer .wave svg {
     position: relative;
     display: block;
     width: calc(100% + 1.3px);
     height: 100px;
-  }
+}
   
-  .footer-content {
+.footer-content {
     padding: 100px 0 30px;
     position: relative;
     z-index: 1;
-  }
+}
   
-  .footer h5 {
-    font-size: 1.2rem;
+.footer h5 {
+    font-size: 1.3rem;
     margin-bottom: 20px;
     color: #FF6347;
-  }
+    font-weight: 600;
+}
   
-  .footer p,
-  .footer ul {
-    font-size: 0.95rem;
-    color: #111;
-  }
+.footer p,
+.footer ul {
+    font-size: 1rem;
+    color: #444;
+    line-height: 1.7;
+}
   
-  .footer ul {
+.footer ul {
     list-style: none;
     padding: 0;
-  }
+}
   
-  .footer ul li {
-    margin-bottom: 10px;
-  }
+.footer ul li {
+    margin-bottom: 12px;
+}
   
-  .footer ul li i {
-    margin-right: 8px;
+.footer ul li i {
+    margin-right: 12px;
     color: #FF6347;
-  }
+}
   
-  .footer .list-inline-item a {
+.footer .list-inline-item a {
     color: #FF6347;
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     text-decoration: none;
     transition: color 0.3s ease;
-  }
+    margin: 0 10px;
+}
   
-  .footer .list-inline-item a:hover {
-    color: #111;
-  }
+.footer .list-inline-item a:hover {
+    color: #e53d27;
+}
   
-  .footer-bottom {
+.footer-bottom {
     background-color: #fff5e9;
-    border-top: 1px solid rgba(17, 17, 17, 0.2);
-  }
-  
-  @media (max-width: 767.98px) {
-    .footer-content {
-      padding: 60px 0 20px;
-    }
-    .footer h5,
-    .footer p,
-    .footer ul {
-      text-align: center;
-    }
-  }
-  
+    border-top: 1px solid rgba(17, 17, 17, 0.1);
+    padding: 1rem 0;
+}
 
+.footer-bottom p {
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+    .left-hero-section h2.my-heading {
+        font-size: 3.5rem;
+    }
+    
+    .left-hero-section p {
+        font-size: 1.5rem;
+    }
+    
+    .hero-quote {
+        padding: 3rem 4rem;
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .container-fluid {
+        padding: 0 1.5rem;
+    }
+    
+    .my-hero {
+        min-height: 60vh;
+    }
+    
+    .left-hero-section {
+        padding-left: 5%;
+    }
+    
+    .left-hero-section h2.my-heading {
+        font-size: 3rem;
+    }
+    
+    .left-hero-section p {
+        font-size: 1.3rem;
+    }
+    
+    .right-hero-section img {
+        height: 60vh;
+    }
+    
+    .hero-quote {
+        padding: 3rem;
+        font-size: 1.4rem;
+        margin: 2rem auto;
+    }
+    
+    .get-started-content h2 {
+        font-size: 2.3rem;
+    }
+    
+    .stats lottie-player {
+        width: 350px;
+        height: 350px;
+    }
+    
+    .stats h3 {
+        font-size: 1.7rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .my-hero {
+        flex-direction: column;
+        padding-top: 5rem;
+        min-height: auto;
+        padding-bottom: 2rem;
+    }
+    
+    .left-hero-section, 
+    .right-hero-section {
+        padding: 2rem 1.5rem;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .left-hero-section h2.my-heading {
+        font-size: 2.8rem;
+    }
+    
+    .left-hero-section p {
+        font-size: 1.2rem;
+        max-width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .right-hero-section {
+        display: block;
+        padding: 0;
+    }
+    
+    .right-hero-section img {
+        width: 100%;
+        height: auto;
+        max-height: 40vh;
+    }
+    
+    .hero-quote {
+        padding: 2.5rem 1.5rem;
+        font-size: 1.3rem;
+        margin: 1.5rem auto;
+    }
+    
+    .hero-quote p::before,
+    .hero-quote p::after {
+        font-size: 2.5rem;
+    }
+    
+    .hero-quote p::before {
+        left: -15px;
+        top: -10px;
+    }
+    
+    .hero-quote p::after {
+        right: -15px;
+        bottom: -30px;
+    }
+    
+    .my-card-list {
+        padding: 2rem 1rem 3rem;
+    }
+    
+    .card-img-top {
+        height: 180px;
+    }
+    
+    .my-get-started {
+        padding: 60px 0;
+        margin: 2rem auto 3rem;
+        width: 95%;
+    }
+    
+    .get-started-content {
+        padding: 0 1rem;
+    }
+    
+    .get-started-content h2 {
+        font-size: 2rem;
+    }
+    
+    .get-started-content p {
+        font-size: 1.1rem;
+    }
+    
+    .stats {
+        flex-direction: column;
+        text-align: center;
+        margin: 3rem auto;
+    }
+    
+    .stats lottie-player {
+        width: 300px;
+        height: 300px;
+    }
+    
+    .stats h3 {
+        font-size: 1.5rem;
+        text-align: center;
+    }
+    
+    .footer-content {
+        padding: 60px 0 20px;
+        text-align: center;
+    }
+}
 
 @media (max-width: 576px) {
-    .left-hero-section {
-        z-index: 2;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        padding-right: 5%;
-        background-color: none !;
-}
-.stats{
-    flex-direction: column;
-    text-align: center;
-}
-.stats lottie-player {
-    width: 100%;
-}
-    .right-hero-section {
-        display: none;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(to bottom, rgba(255,245,233,1) 0%, rgba(255,245,233,0) 100%);
-        pointer-events: none;
-        z-index: -10;
+    .container-fluid {
+        padding: 0 1rem;
     }
-
+    
+    .my-heading {
+        font-size: 24px;
+    }
+    
+    .left-hero-section h2.my-heading {
+        font-size: 2.2rem;
+        line-height: 1.2;
+        margin-bottom: 1rem;
+    }
+    
+    .left-hero-section p {
+        font-size: 1.1rem;
+        line-height: 1.4;
+    }
+    
     .my-hero {
-        background-image: url('https://cdn.jsdelivr.net/gh/faizan-26/homie-do/assets/landing-bg.jpg');
+        background-image: url('assets/landing-bg.jpg');
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
         position: relative;
-        height: 35vh;
+        padding-top: 4rem;
     }
+    
     .my-hero::before {
         content: "";
         position: absolute;
@@ -357,15 +641,66 @@ nav li a {
         width: 100%;
         height: 100%;
         background-color: #fff5e9;
-        opacity: 0.9;
-        backdrop-filter: blur(20px);
+        opacity: 0.92;
+        backdrop-filter: blur(5px);
         z-index: 1;
     }
+    
     .my-hero > * {
         position: relative;
         z-index: 2;
     }
-
+    
+    .right-hero-section {
+        display: none;
+    }
+    
+    .hero-quote {
+        padding: 2rem 1rem;
+        font-size: 1.1rem;
+    }
+    
+    .hero-quote p::before,
+    .hero-quote p::after {
+        font-size: 2rem;
+    }
+    
+    .hero-quote p::before {
+        left: -10px;
+        top: -8px;
+    }
+    
+    .hero-quote p::after {
+        right: -10px;
+        bottom: -25px;
+    }
+    
+    .my-card-list h2 {
+        font-size: 1.8rem;
+        margin-bottom: 2rem;
+    }
+    
+    .card-title {
+        font-size: 1.3rem;
+    }
+    
+    .card-text {
+        font-size: 1rem;
+    }
+    
+    .get-started-content h2 {
+        font-size: 1.8rem;
+    }
+    
+    .stats lottie-player {
+        width: 250px;
+        height: 250px;
+    }
+    
+    .stats h3 {
+        font-size: 1.3rem;
+    }
+    
     .nav-mybtn {
         display: inline-block;
         width: auto;
@@ -374,49 +709,4 @@ nav li a {
     .navbar-nav {
         align-items: flex-start;
     }
-  
-}
-
-@media (min-width: 992px) {
-    .my-get-started {
-        margin: 0 auto;
-    }
-
-}
-
-.hero-quote {
-    padding: 3rem 5rem;
-    text-align: center;
-    font-weight: 500;
-    font-style: italic;
-    font-size: 1.6rem;
-    line-height: 1.6;
-    color: #333;
-    max-width: 1000px;
-    margin: 0 auto;
-    position: relative;
-}
-
-.hero-quote p {
-    position: relative;
-}
-
-.hero-quote p::before,
-.hero-quote p::after {
-    content: '"';
-    font-size: 3rem;
-    color: #FF6347;
-    opacity: 0.3;
-    position: absolute;
-    font-family: Georgia, serif;
-}
-
-.hero-quote p::before {
-    left: -25px;
-    top: -15px;
-}
-
-.hero-quote p::after {
-    right: -25px;
-    bottom: -35px;
 }
