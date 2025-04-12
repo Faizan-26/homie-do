@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Homie Doo - Login</title>
+    <!-- FONT AWESOME -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <!-- Bootstrap Style-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="login_style.css">
+
+    <!-- Bootstrap JS-Script  -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <!-- LOGIN SECTION -->
+    <div class="login-container">
+        <!-- LEFT SECTION -->
+        <div class="login-left-section">
+            <div class="darkening-overlay"></div>
+            <div class="login-left-content">
+                <h1 class="my-heading">Welcome to Homie Doo</h1>
+                <p class="login-subtitle" style="color: whitesmoke;">Your ultimate academic companion - simplifying homework, providing expert study tips, and helping you ace exams with personalized preparation strategies.</p>
+            </div>
+        </div>
+
+        <!-- RIGHT SECTION - LOGIN/SIGNUP FORM -->
+        <div class="login-right-section">
+            <div class="form-container">
+                <div class="form-toggle-buttons" id="mainToggleButtons">
+                    <button id="loginToggle" class="form-toggle-btn active">Login</button>
+                    <button id="signupToggle" class="form-toggle-btn">Sign Up</button>
+                </div>
+                
+                <div class="form-toggle-buttons" id="forgotPasswordToggleButtons" style="display: none;">
+                    <button id="forgotToggle" class="form-toggle-btn active">Forgot Password</button>
+                </div>
+
+                <!-- LOGIN FORM -->
+                <div id="loginForm" class="auth-form">
+                    <h3>Login to your account</h3>
+                    <form id="loginFormElement" novalidate>
+                        <div class="mb-4">
+                            <label for="loginEmail" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="loginEmail" placeholder="Enter your email" required>
+                            <div class="error-message" id="loginEmailError">Please enter a valid email address.</div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="loginPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="loginPassword" placeholder="Enter your password" required>
+                            <div class="error-message" id="loginPasswordError">Password is required.</div>
+                        </div>
+                        <div class="mb-4 form-check">
+                            <div>
+                                <input type="checkbox" class="form-check-input" id="rememberMe">
+                                <label class="form-check-label" for="rememberMe">Remember me</label>
+                            </div>
+                            <div class="forgot-password">
+                                <a href="#" id="forgotPasswordLink">Forgot password?</a>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn mybtn w-100">Login</button>
+                    </form>
+                </div>
+
+                <!-- SIGNUP FORM -->
+                <div id="signupForm" class="auth-form" style="display: none;">
+                    <h3>Create an account</h3>
+                    <form id="signupFormElement" novalidate>
+                        <div class="mb-4">
+                            <label for="signupName" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="signupName" placeholder="Enter your full name" required>
+                            <div class="error-message" id="signupNameError">Please enter your full name.</div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="signupEmail" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="signupEmail" placeholder="Enter your email" required>
+                            <div class="error-message" id="signupEmailError">Please enter a valid email address.</div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="signupPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="signupPassword" placeholder="Create a password" required>
+                            <div class="error-message" id="signupPasswordError">Password must be at least 8 characters with at least one uppercase letter, one lowercase letter, one number and one special character.</div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="confirmPassword" class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm your password" required>
+                            <div class="error-message" id="confirmPasswordError">Passwords do not match.</div>
+                        </div>
+                        <div class="mb-4 form-check">
+                            <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                            <label class="form-check-label" for="agreeTerms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
+                            <div class="error-message" id="agreeTermsError">You must agree to the terms of service.</div>
+                        </div>
+                        <button type="submit" class="btn mybtn w-100">Sign Up</button>
+                    </form>
+                </div>
+
+                <!-- FORGOT PASSWORD FORM -->
+                <div id="forgotPasswordForm" class="auth-form" style="display: none;">
+                    <h3>Reset your password</h3>
+                    <p class="mb-4">Enter your email address and we'll send you a link to reset your password.</p>
+                    <form id="forgotPasswordFormElement" novalidate>
+                        <div class="mb-4">
+                            <label for="forgotEmail" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="forgotEmail" placeholder="Enter your email" required>
+                            <div class="error-message" id="forgotEmailError">Please enter a valid email address.</div>
+                        </div>
+                        <button type="submit" class="btn mybtn w-100">Send Reset Link</button>
+                        <div class="text-center mt-3">
+                            <a href="#" id="backToLogin">Back to login</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            
+
+            // Form toggle elements
+            const loginToggle = document.getElementById('loginToggle');
+            const signupToggle = document.getElementById('signupToggle');
+            const forgotToggle = document.getElementById('forgotToggle');
+            const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+            const backToLogin = document.getElementById('backToLogin');
+            
+            // Toggle button containers
+            const mainToggleButtons = document.getElementById('mainToggleButtons');
+            const forgotPasswordToggleButtons = document.getElementById('forgotPasswordToggleButtons');
+            
+            // Forms
+            const loginForm = document.getElementById('loginForm');
+            const signupForm = document.getElementById('signupForm');
+            const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+            
+            // Form elements
+            const loginFormElement = document.getElementById('loginFormElement');
+            const signupFormElement = document.getElementById('signupFormElement');
+            const forgotPasswordFormElement = document.getElementById('forgotPasswordFormElement');
+
+            // Toggle login form
+            function showLoginForm() {
+                // Show main toggle buttons
+                mainToggleButtons.style.display = 'flex';
+                forgotPasswordToggleButtons.style.display = 'none';
+                
+                // Activate login button
+                loginToggle.classList.add('active');
+                signupToggle.classList.remove('active');
+                
+                // Show login form, hide others
+                loginForm.style.display = 'block';
+                signupForm.style.display = 'none';
+                forgotPasswordForm.style.display = 'none';
+            }
+
+            // Toggle signup form
+            function showSignupForm() {
+                // Show main toggle buttons
+                mainToggleButtons.style.display = 'flex';
+                forgotPasswordToggleButtons.style.display = 'none';
+                
+                // Activate signup button
+                signupToggle.classList.add('active');
+                loginToggle.classList.remove('active');
+                
+                // Show signup form, hide others
+                signupForm.style.display = 'block';
+                loginForm.style.display = 'none';
+                forgotPasswordForm.style.display = 'none';
+            }
+
+            // Toggle forgot password form
+            function showForgotPasswordForm() {
+                // Hide main toggle buttons, show forgot password toggle
+                mainToggleButtons.style.display = 'none';
+                forgotPasswordToggleButtons.style.display = 'flex';
+                
+                // Show forgot password form, hide others
+                forgotPasswordForm.style.display = 'block';
+                loginForm.style.display = 'none';
+                signupForm.style.display = 'none';
+            }
+
+            // Add event listeners for form toggles
+            loginToggle.addEventListener('click', showLoginForm);
+            signupToggle.addEventListener('click', showSignupForm);
+            forgotPasswordLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                showForgotPasswordForm();
+            });
+            backToLogin.addEventListener('click', function(e) {
+                e.preventDefault();
+                showLoginForm();
+            });
+
+            // Validation regular expressions
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+            const nameRegex = /^[a-zA-Z ]{2,}$/;
+
+            // Validation functions
+            function validateEmail(email) {
+                return emailRegex.test(email);
+            }
+
+            function validatePassword(password) {
+                return passwordRegex.test(password);
+            }
+
+            function validateName(name) {
+                return nameRegex.test(name);
+            }
+
+            function showError(inputElement, errorElement, isValid) {
+                if (!isValid) {
+                    inputElement.classList.add('is-invalid');
+                    inputElement.classList.remove('is-valid');
+                    errorElement.style.display = 'block';
+                } else {
+                    inputElement.classList.remove('is-invalid');
+                    inputElement.classList.add('is-valid');
+                    errorElement.style.display = 'none';
+                }
+                return isValid;
+            }
+
+            // Login form validation
+            loginFormElement.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const email = document.getElementById('loginEmail');
+                const password = document.getElementById('loginPassword');
+                
+                const isEmailValid = showError(email, document.getElementById('loginEmailError'), validateEmail(email.value));
+                const isPasswordValid = showError(password, document.getElementById('loginPasswordError'), password.value.length > 0);
+                
+                if (isEmailValid && isPasswordValid) {
+                    // Form is valid, submit it
+                    console.log('Login form is valid');
+                    alert('Login successful!');
+                    // loginFormElement.submit();
+                }
+            });
+
+            // Signup form validation
+            signupFormElement.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const name = document.getElementById('signupName');
+                const email = document.getElementById('signupEmail');
+                const password = document.getElementById('signupPassword');
+                const confirmPassword = document.getElementById('confirmPassword');
+                const agreeTerms = document.getElementById('agreeTerms');
+                
+                const isNameValid = showError(name, document.getElementById('signupNameError'), validateName(name.value));
+                const isEmailValid = showError(email, document.getElementById('signupEmailError'), validateEmail(email.value));
+                const isPasswordValid = showError(password, document.getElementById('signupPasswordError'), validatePassword(password.value));
+                const isConfirmPasswordValid = showError(confirmPassword, document.getElementById('confirmPasswordError'), password.value === confirmPassword.value && confirmPassword.value.length > 0);
+                const isTermsChecked = agreeTerms.checked;
+                
+                document.getElementById('agreeTermsError').style.display = isTermsChecked ? 'none' : 'block';
+                
+                if (isNameValid && isEmailValid && isPasswordValid && isConfirmPasswordValid && isTermsChecked) {
+                    // Form is valid, submit it
+                    console.log('Signup form is valid');
+                    alert('Signup successful!');
+                    // signupFormElement.submit();
+                }
+            });
+
+            // Forgot password form validation
+            forgotPasswordFormElement.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const email = document.getElementById('forgotEmail');
+                const isEmailValid = showError(email, document.getElementById('forgotEmailError'), validateEmail(email.value));
+                
+                if (isEmailValid) {
+                    // Form is valid, submit it
+                    console.log('Forgot password form is valid');
+                    alert('Password reset link sent to your email!');
+                    // forgotPasswordFormElement.submit();
+                }
+            });
+
+            // Real-time validation for email fields
+            document.getElementById('loginEmail').addEventListener('input', function() {
+                showError(this, document.getElementById('loginEmailError'), validateEmail(this.value) || this.value === '');
+            });
+
+            document.getElementById('signupEmail').addEventListener('input', function() {
+                showError(this, document.getElementById('signupEmailError'), validateEmail(this.value) || this.value === '');
+            });
+
+            document.getElementById('forgotEmail').addEventListener('input', function() {
+                showError(this, document.getElementById('forgotEmailError'), validateEmail(this.value) || this.value === '');
+            });
+
+            // Real-time validation for password fields
+            document.getElementById('signupPassword').addEventListener('input', function() {
+                showError(this, document.getElementById('signupPasswordError'), validatePassword(this.value) || this.value === '');
+                
+                // Update confirm password validation if it has a value
+                const confirmPassword = document.getElementById('confirmPassword');
+                if (confirmPassword.value) {
+                    showError(confirmPassword, document.getElementById('confirmPasswordError'), this.value === confirmPassword.value);
+                }
+            });
+
+            document.getElementById('confirmPassword').addEventListener('input', function() {
+                const password = document.getElementById('signupPassword').value;
+                showError(this, document.getElementById('confirmPasswordError'), this.value === password || this.value === '');
+            });
+
+            // Real-time validation for name field
+            document.getElementById('signupName').addEventListener('input', function() {
+                showError(this, document.getElementById('signupNameError'), validateName(this.value) || this.value === '');
+            });
+        });
+    </script>
+</body>
+
+</html>
