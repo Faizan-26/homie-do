@@ -1,44 +1,102 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from "@/components/ui/button";
+import ThemeToggle from './ThemeToggle';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
-function Navbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+function Navbar({ scrollToAbout }) {
+  const navigate = useNavigate();
+  const [isDark, setIsDark] = useState(false);
+  
+  useEffect(() => {
+    // Check if user has a theme preference in localStorage
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      setIsDark(true);
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
+  const toggleTheme = () => {
+    setIsDark(!isDark);
+    if (isDark) {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    } else {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    }
+  };
+  
+  const handleGetStarted = () => {
+    navigate('/login');
   };
 
   return (
-    <nav className="fixed top-0 left-0 w-full bg-white shadow-nav z-50 py-2">
-      <div className="container mx-auto px-6 md:px-10">
-        <div className="flex justify-between items-center">
-          <Link className="text-primary font-semibold text-2xl" to="/">Homie Doo</Link>
-          
-          {/* Mobile menu button */}
-          <button 
-            className="md:hidden focus:outline-none"
-            onClick={toggleMenu}
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
-            </svg>
-          </button>
-          
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-6">
-            <Link className="text-secondary hover:text-primary transition-colors font-medium" to="/">Home</Link>
-            <Link className="text-secondary hover:text-primary transition-colors font-medium" to="/about">About</Link>
-            <Link className="bg-primary text-white px-4 py-2 rounded-md hover:bg-opacity-90 transition-colors font-medium" to="/login">Get Started</Link>
-          </div>
+    <nav className="bg-white dark:bg-[#1e2538] border-b dark:border-gray-700 py-4 fixed top-0 left-0 right-0 z-100 transition-colors duration-300">
+      <div className="container mx-auto px-4 flex justify-between items-center">
+        <a href="/" className="text-2xl font-bold text-primary dark:text-[#FF7B61] transition-colors duration-300">Homie Doo</a>
+        
+        {/* Mobile menu with Sheet component */}
+        <div className="lg:hidden flex items-center gap-2">
+          <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" className="p-2 transition-colors duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-menu">
+                  <line x1="4" x2="20" y1="12" y2="12"></line>
+                  <line x1="4" x2="20" y1="6" y2="6"></line>
+                  <line x1="4" x2="20" y1="18" y2="18"></line>
+                </svg>
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="bg-white dark:bg-[#1e2538] transition-colors duration-300">
+              <SheetHeader>
+                <SheetTitle className="text-primary dark:text-[#FF7B61] transition-colors duration-300">Menu</SheetTitle>
+              </SheetHeader>
+              <div className="flex flex-col mt-6 space-y-4">
+                <a href="/" className="text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-[#FF7B61] transition-colors duration-300">Home</a>
+                <button
+                  onClick={scrollToAbout}
+                  className="text-left text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-[#FF7B61] transition-colors duration-300 bg-transparent border-none cursor-pointer"
+                >
+                  About
+                </button>
+                <Button
+                  onClick={handleGetStarted}
+                  className="bg-primary text-white hover:bg-primary/90 transition-all duration-300"
+                >
+                  Get Started
+                </Button>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
         
-        {/* Mobile Navigation */}
-        <div className={`md:hidden ${isMenuOpen ? 'block' : 'hidden'} mt-4`}>
-          <div className="flex flex-col space-y-4 pb-4">
-            <Link className="text-secondary hover:text-primary transition-colors font-medium" to="/">Home</Link>
-            <Link className="text-secondary hover:text-primary transition-colors font-medium" to="/about">About</Link>
-            <Link className="bg-primary text-white px-4 py-2 rounded-md hover:bg-opacity-90 transition-colors font-medium w-fit" to="/login">Get Started</Link>
-          </div>
+        {/* Desktop menu */}
+        <div className="hidden lg:flex items-center space-x-8">
+          <a href="/" className="text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-[#FF7B61] transition-colors duration-300">Home</a>
+          <button 
+            onClick={scrollToAbout}
+            className="text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-[#FF7B61] transition-colors duration-300 bg-transparent border-none cursor-pointer"
+          >
+            About
+          </button>
+          <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
+          <Button 
+            onClick={handleGetStarted}
+            className="bg-primary text-white hover:bg-primary/90 transition-all duration-300"
+          >
+            Get Started
+          </Button>
         </div>
       </div>
     </nav>

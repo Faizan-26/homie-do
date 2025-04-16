@@ -1,0 +1,40 @@
+@keyframes slideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-form {
+  animation: slideDown 0.8s ease forwards;
+}
+
+.form-container {
+  max-height: 480px;
+  overflow-y: auto;
+  padding-right: 12px;
+  margin-right: -12px;
+}
+
+/* Custom scrollbar styles */
+.form-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.form-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 8px;
+}
+
+.form-container::-webkit-scrollbar-thumb {
+  background: #FF6347;
+  border-radius: 8px;
+}
+
+.form-container::-webkit-scrollbar-thumb:hover {
+  background: #FF5339;
+} 
