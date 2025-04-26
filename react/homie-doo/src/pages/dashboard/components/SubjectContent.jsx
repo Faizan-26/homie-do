@@ -25,9 +25,7 @@ import { Star, FileText, Calendar, Clock } from 'lucide-react';
 
 const SubjectContent = ({ subject, updateSubject, favorites, toggleFavorite }) => {
   const [selectedTab, setSelectedTab] = useState('syllabus');
-  const [selectedNote, setSelectedNote] = useState(null);
   
-  // Dialog states
   const [addUnitDialogOpen, setAddUnitDialogOpen] = useState(false);
   const [editUnitDialogOpen, setEditUnitDialogOpen] = useState(false);
   const [selectedUnitIndex, setSelectedUnitIndex] = useState(null);
@@ -119,21 +117,21 @@ const SubjectContent = ({ subject, updateSubject, favorites, toggleFavorite }) =
   };
   
   const handleUpdateChapter = (updatedChapter) => {
-    if (!selectedUnit) return;
+    if (!updatedChapter) return;
     
     // Create a deep copy of the current subject
     const updatedSubject = JSON.parse(JSON.stringify(subject));
     
     // Find the unit containing the chapter
     const unitIndex = updatedSubject.courseMaterials.syllabus.sections.findIndex(
-      unit => unit.title === selectedUnit.title
+      unit => unit.title === updatedChapter.title
     );
-    
+    console.log("Unit Index:", unitIndex);
     if (unitIndex === -1) return;
     
     // Find the chapter within the unit
     const chapterIndex = updatedSubject.courseMaterials.syllabus.sections[unitIndex].chapters.findIndex(
-      chapter => chapter.title === selectedChapter.title
+      chapter => chapter.title === updatedChapter.title
     );
     
     if (chapterIndex === -1) return;
@@ -145,11 +143,11 @@ const SubjectContent = ({ subject, updateSubject, favorites, toggleFavorite }) =
     handleSyncWithParent(updatedSubject);
     
     // Reset selection and close dialog
-    setSelectedChapter(null);
+    setSelectedChapterData(null);
     setEditChapterDialogOpen(false);
     
     // Show success toast
-    // toast.success("Chapter updated successfully!");
+    toast.success("Chapter updated successfully!");
   };
   
   const handleAddSubtopic = (newSubtopic) => {
@@ -696,7 +694,7 @@ const SubjectContent = ({ subject, updateSubject, favorites, toggleFavorite }) =
                                 onClick={(e) => {
                                   e.preventDefault();
                                   setSelectedUnitIndex(sectionIndex);
-                                  setSelectedChapterData({ unitIndex, chapterIndex });
+                                  setSelectedChapterData({ unitIndex: sectionIndex, chapterIndex });
                                   setEditChapterDialogOpen(true);
                                 }}
                               >
@@ -712,7 +710,7 @@ const SubjectContent = ({ subject, updateSubject, favorites, toggleFavorite }) =
                                   className="text-xs text-blue-600 dark:text-blue-400 opacity-0 group-hover/item:opacity-100 transition-opacity"
                                   onClick={() => {
                                     setSelectedUnitIndex(sectionIndex);
-                                    setSelectedSubtopicData({ unitIndex, chapterIndex, subtopicIndex });
+                                    setSelectedSubtopicData({ unitIndex : sectionIndex, chapterIndex, subtopicIndex });
                                     setEditSubtopicDialogOpen(true);
                                   }}
                                 >

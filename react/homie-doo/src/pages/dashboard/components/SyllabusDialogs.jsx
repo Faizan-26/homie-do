@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '../../../components/ui/button';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
+
 
 export const AddUnitDialog = ({ isOpen, onClose, onAddUnit }) => {
   const [title, setTitle] = useState('');
@@ -95,6 +96,14 @@ export const AddUnitDialog = ({ isOpen, onClose, onAddUnit }) => {
 export const EditUnitDialog = ({ isOpen, onClose, unit, onUpdateUnit }) => {
   const [title, setTitle] = useState(unit?.title || '');
   const [weeks, setWeeks] = useState(unit?.weeks || '');
+  useEffect(() => {
+    if (unit) {
+      console.log('Unit data:', unit);
+      setTitle(unit.title || '');
+      setWeeks(unit.weeks || '');
+    }
+  }, [unit]);
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -104,6 +113,8 @@ export const EditUnitDialog = ({ isOpen, onClose, unit, onUpdateUnit }) => {
         title: title.trim(),
         weeks: weeks.trim(),
       });
+      setTitle('');
+      setWeeks('');
       onClose();
     }
   };
@@ -128,7 +139,7 @@ export const EditUnitDialog = ({ isOpen, onClose, unit, onUpdateUnit }) => {
               <input
                 id="edit-unit-title"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => setTitle(e.target.value)} // 
                 required
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               />
@@ -278,6 +289,14 @@ export const EditChapterDialog = ({ isOpen, onClose, chapter, onUpdateChapter })
   const [subtopics, setSubtopics] = useState(
     chapter?.subtopics ? chapter.subtopics.join('\n') : ''
   );
+
+  useEffect(()=>{
+    if (chapter) {
+      setTitle(chapter.title || '');
+      setSubtopics(chapter.subtopics ? chapter.subtopics.join('\n') : '');
+    }
+
+  }, [chapter]);
 
   const handleSubmit = (e) => {
     e.preventDefault();

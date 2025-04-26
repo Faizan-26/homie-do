@@ -250,6 +250,13 @@ const DashboardPage = () => {
     toast.success(`Subject "${newSubject.name}" added successfully!`);
   };
 
+  const handleDeleteSubject = (subjectId) => {
+    const updatedSubjects = subjects.filter(subject => subject.id !== subjectId);
+    setSubjects(updatedSubjects);
+    // Add toast notification
+    toast.success(`Subject deleted successfully!`);
+  }
+
   // New function to update subject data
   const handleUpdateSubject = (updatedSubject) => {
     const updatedSubjects = subjects.map(subject => 
@@ -317,6 +324,7 @@ const DashboardPage = () => {
           onAddSubject={handleAddSubject}
           isDarkMode={isDarkMode}
           toggleDarkMode={toggleDarkMode}
+          onDeleteSubject={handleDeleteSubject}
         />
         
         {/* Dashboard Content Component */}

@@ -1,6 +1,5 @@
 import React from 'react';
 import { Button } from '../../../components/ui/button';
-import { MoonIcon, SunIcon } from '@radix-ui/react-icons';
 import SubjectContent from './SubjectContent';
 import { useAuth } from '../../../context/AuthContext';
 import Todo from './Todo';
