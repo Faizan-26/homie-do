@@ -70,6 +70,7 @@ function Navbar({ scrollToAbout }) {
                 >
                   About
                 </button>
+                <a href="/todos" className="text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-[#FF7B61] transition-colors duration-300">Todos</a>
                 <Button
                   onClick={handleGetStarted}
                   className="bg-primary text-white hover:bg-primary/90 transition-all duration-300"
@@ -90,6 +91,7 @@ function Navbar({ scrollToAbout }) {
           >
             About
           </button>
+          <a href="/todos" className="text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-[#FF7B61] transition-colors duration-300">Todos</a>
           <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
           <Button 
             onClick={handleGetStarted}

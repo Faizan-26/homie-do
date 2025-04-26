@@ -1,16 +1,8 @@
 import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { toast } from 'sonner';
 import { Button } from '../../../components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '../../../components/ui/dialog';
-import { PlusIcon } from '@radix-ui/react-icons';
+import { X } from 'lucide-react';
 
 const SUBJECT_COLORS = [
   { name: 'Red', value: 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-200' },
@@ -24,8 +16,7 @@ const SUBJECT_COLORS = [
 
 const ICONS = ['📚', '🧠', '🔬', '🧪', '📊', '📈', '📝', '💻', '🧮', '🔍', '🧬', '⚗️', '🔭', '📡', '📱', '🔋', '💡', ]; 
 
-const AddSubjectDialog = ({ onAddSubject }) => {
-  const [open, setOpen] = useState(false);
+const AddSubjectDialog = ({ onAddSubject, onClose = () => {} }) => {
   const [subjectName, setSubjectName] = useState('');
   const [selectedColor, setSelectedColor] = useState(SUBJECT_COLORS[0].value);
   const [selectedIcon, setSelectedIcon] = useState(ICONS[0]);
@@ -37,6 +28,7 @@ const AddSubjectDialog = ({ onAddSubject }) => {
     // Validate inputs
     if (!subjectName.trim()) {
       setError('Subject name is required');
+      toast.error('Subject name is required');
       return;
     }
     
@@ -68,86 +60,90 @@ const AddSubjectDialog = ({ onAddSubject }) => {
     setSubjectName('');
     setSelectedColor(SUBJECT_COLORS[0].value);
     setSelectedIcon(ICONS[0]);
-    setOpen(false);
+    onClose();
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="w-full bg-blue-600 hover:bg-blue-700">
-          <PlusIcon className="mr-2 h-4 w-4" />
-          New Subject
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Add New Subject</DialogTitle>
-          <DialogDescription>
+    <>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-lg font-semibold">Add New Subject</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             Create a new subject for your study materials
-          </DialogDescription>
-        </DialogHeader>
+          </p>
+        </div>
+        <button 
+          className="text-gray-400 hover:text-gray-500"
+          onClick={onClose}
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+      
+      <form onSubmit={handleSubmit} className="space-y-4 py-4">
+        <div className="space-y-2">
+          <label htmlFor="name" className="text-sm font-medium">
+            Subject Name
+          </label>
+          <input
+            id="name"
+            value={subjectName}
+            onChange={(e) => setSubjectName(e.target.value)}
+            placeholder="Enter subject name"
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          />
+          {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+        </div>
         
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
-          <div className="space-y-2">
-            <label htmlFor="name" className="text-sm font-medium">
-              Subject Name
-            </label>
-            <input
-              id="name"
-              value={subjectName}
-              onChange={(e) => setSubjectName(e.target.value)}
-              placeholder="Enter subject name"
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">
+            Subject Color
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {SUBJECT_COLORS.map((color) => (
+              <button
+                key={color.value}
+                type="button"
+                className={`w-8 h-8 rounded-full ${color.value.split(' ')[0]} hover:ring-2 hover:ring-offset-2 ${selectedColor === color.value ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`}
+                onClick={() => setSelectedColor(color.value)}
+                aria-label={`Select ${color.name} color`}
+              />
+            ))}
           </div>
-          
-          <div className="space-y-2">
-            <label className="text-sm font-medium">
-              Subject Color
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {SUBJECT_COLORS.map((color) => (
-                <button
-                  key={color.value}
-                  type="button"
-                  className={`w-8 h-8 rounded-full ${color.value.split(' ')[0]} hover:ring-2 hover:ring-offset-2 ${selectedColor === color.value ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`}
-                  onClick={() => setSelectedColor(color.value)}
-                  aria-label={`Select ${color.name} color`}
-                />
-              ))}
-            </div>
+        </div>
+        
+        <div className="space-y-2">
+          <label className="text-sm font-medium">
+            Subject Icon
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {ICONS.map((icon) => (
+              <button
+                key={icon}
+                type="button"
+                className={`w-8 h-8 rounded-md flex items-center justify-center bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 ${selectedIcon === icon ? 'ring-2 ring-blue-500' : ''}`}
+                onClick={() => setSelectedIcon(icon)}
+                aria-label={`Select ${icon} icon`}
+              >
+                {icon}
+              </button>
+            ))}
           </div>
-          
-          <div className="space-y-2">
-            <label className="text-sm font-medium">
-              Subject Icon
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {ICONS.map((icon) => (
-                <button
-                  key={icon}
-                  type="button"
-                  className={`w-8 h-8 rounded-md flex items-center justify-center bg-gray-100 hover:bg-gray-200 ${selectedIcon === icon ? 'ring-2 ring-blue-500' : ''}`}
-                  onClick={() => setSelectedIcon(icon)}
-                  aria-label={`Select ${icon} icon`}
-                >
-                  {icon}
-                </button>
-              ))}
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit">Add Subject</Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </div>
+        
+        <div className="flex justify-end gap-2 mt-4">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onClose}
+          >
+            Cancel
+          </Button>
+          <Button type="submit">Add Subject</Button>
+        </div>
+      </form>
+    </>
   );
 };
 

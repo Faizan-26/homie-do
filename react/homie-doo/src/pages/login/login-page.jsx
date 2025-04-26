@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import LoginForm from './components/LoginForm';
 import SignupForm from './components/SignupForm';
 import ForgotPasswordForm from './components/ForgotPasswordForm';
 import ThemeToggle from '../../components/ThemeToggle';
+import { useAuth } from '../../context/AuthContext';
 import './styles.css';
 
 const LoginPage = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated, loading } = useAuth();
   const [activeTab, setActiveTab] = useState('login'); // 'login', 'signup', 'forgot'
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -14,6 +18,13 @@ const LoginPage = () => {
     }
     return false;
   });
+
+  // Redirect if user is already authenticated
+  useEffect(() => {
+    if (isAuthenticated && !loading) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, loading, navigate]);
 
   useEffect(() => {
     if (isDark) {
@@ -28,6 +39,18 @@ const LoginPage = () => {
   const toggleTheme = () => {
     setIsDark(!isDark);
   };
+
+  // Show loading if we're still checking authentication
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-[#1a1f2d]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FF6347] mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full relative overflow-x-hidden md:overflow-hidden bg-gray-50 dark:bg-[#1a1f2d] transition-colors duration-200">

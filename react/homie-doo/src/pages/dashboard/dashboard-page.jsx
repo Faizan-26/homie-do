@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Toaster, toast } from 'sonner';
 import Sidebar from './components/Sidebar';
 import DashboardContent from './components/DashboardContent';
+import { useAuth } from '../../context/AuthContext';
 
 // Dummy subjects data with full structure
 const initialSubjects = [
@@ -141,18 +143,42 @@ const initialSubjects = [
 
 const DashboardPage = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
-  const [subjects, setSubjects] = useState(initialSubjects);
-  const [FavDocuments, setFavDocuments] = useState([
-    { id: 1, name: 'To-do List', icon: '✅', type: 'document' },
-    { id: 2, name: 'Reading List', icon: '📚', type: 'document' },
-  ]);
+  const [subjects, setSubjects] = useState(() => {
+    // Try to load subjects from localStorage first
+    const savedSubjects = localStorage.getItem('subjects');
+    return savedSubjects ? JSON.parse(savedSubjects) : initialSubjects;
+  });
+  
+  // State to track selected view (subject, todo, or favorites)
+  const [selectedView, setSelectedView] = useState({
+    type: null, // can be 'subject', 'todo', or 'favorites'
+    id: null // subject id if type is 'subject'
+  });
+  
+  // State to track which documents are favorited
+  const [favorites, setFavorites] = useState(() => {
+    // Load favorites from localStorage
+    const savedFavorites = localStorage.getItem('favorites');
+    return savedFavorites ? JSON.parse(savedFavorites) : [];
+  });
+  
   const [classesExpanded, setClassesExpanded] = useState(true);
-  const [selectedSubject, setSelectedSubject] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  
+  // Save subjects to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('subjects', JSON.stringify(subjects));
+  }, [subjects]);
+  
+  // Save favorites to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+  }, [favorites]);
   
   const handleResize = () => {
     const mobile = window.innerWidth < 768;
@@ -160,7 +186,6 @@ const DashboardPage = () => {
     
     if (mobile) {
       setSidebarOpen(false);
-      // Ensure we never have collapsed state on mobile - always use the full drawer
       setSidebarCollapsed(false);
     } else {
       setSidebarOpen(true);
@@ -220,15 +245,9 @@ const DashboardPage = () => {
   };
 
   const handleAddSubject = (newSubject) => {
-    // No need to add an ID as it's already included in the newSubject object from uuid
-    const updatedSubjects = [...subjects, newSubject];
-    setSubjects(updatedSubjects);
-    
-    // Add a small delay to ensure the subjects state is updated before setting selected subject
-    setTimeout(() => {
-      setSelectedSubject(newSubject.id);
-    }, 50);
-
+    setSubjects([...subjects, newSubject]);
+    // Add toast notification
+    toast.success(`Subject "${newSubject.name}" added successfully!`);
   };
 
   // New function to update subject data
@@ -237,26 +256,65 @@ const DashboardPage = () => {
       subject.id === updatedSubject.id ? updatedSubject : subject
     );
     setSubjects(updatedSubjects);
+    // Add toast notification
+    // toast.success(`Subject "${updatedSubject.name}" updated successfully!`);
+  };
+  
+  // Function to toggle a document as favorite
+  const toggleFavorite = (docType, subjectId, docId) => {
+    const favoriteId = `${docType}_${subjectId}_${docId}`;
+    
+    if (favorites.includes(favoriteId)) {
+      setFavorites(favorites.filter(id => id !== favoriteId));
+    } else {
+      setFavorites([...favorites, favoriteId]);
+    }
+  };
+  
+  // Function to handle selecting Todo view
+  const handleSelectTodo = () => {
+    setSelectedView({
+      type: 'todo',
+      id: null
+    });
+  };
+  
+  // Function to handle selecting Favorites view
+  const handleSelectFavorites = () => {
+    setSelectedView({
+      type: 'favorites',
+      id: null
+    });
+  };
+  
+  // Function to handle selecting a subject
+  const handleSelectSubject = (subjectId) => {
+    setSelectedView({
+      type: 'subject',
+      id: subjectId
+    });
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex overflow-hidden">
-      <div className="flex w-full">
+    <div className="h-screen flex flex-col">
+
+      
+      <main className="flex-1 flex overflow-hidden">
         {/* Sidebar Component */}
         <Sidebar 
           subjects={subjects}
-          documents={FavDocuments}
           sidebarOpen={sidebarOpen}
           sidebarCollapsed={sidebarCollapsed}
-          setSidebarCollapsed={setSidebarCollapsed}
-          toggleSidebarCollapse={toggleSidebarCollapse}
-          classesExpanded={classesExpanded}
-          setClassesExpanded={setClassesExpanded}
-          selectedSubject={selectedSubject}
-          setSelectedSubject={setSelectedSubject}
+          toggleSidebar={toggleSidebarCollapse}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
-          handleAddSubject={handleAddSubject}
+          classesExpanded={classesExpanded}
+          setClassesExpanded={setClassesExpanded}
+          selectedSubject={selectedView.type === 'subject' ? selectedView.id : null}
+          setSelectedSubject={handleSelectSubject}
+          onSelectTodo={handleSelectTodo}
+          onSelectFavorites={handleSelectFavorites}
+          onAddSubject={handleAddSubject}
           isDarkMode={isDarkMode}
           toggleDarkMode={toggleDarkMode}
         />
@@ -264,23 +322,28 @@ const DashboardPage = () => {
         {/* Dashboard Content Component */}
         <DashboardContent 
           subjects={subjects}
-          selectedSubject={selectedSubject}
+          selectedView={selectedView}
           updateSubject={handleUpdateSubject}
+          favorites={favorites}
+          toggleFavorite={toggleFavorite}
+          sidebarCollapsed={sidebarCollapsed}
           navigate={navigate}
+          logout={logout}
         />
-      </div>
+        
+        {sidebarOpen && isMobile && (
+          <div className="fixed inset-0 z-30 pointer-events-none">
+            <div className="absolute left-0 top-0 bottom-0 w-60"></div>
+            
+            <div 
+              className="absolute right-0 top-0 bottom-0 left-60 bg-black/10 pointer-events-auto"
+              onClick={() => setSidebarOpen(false)}
+            ></div>
+          </div>
+        )}
+      </main>
       
-      {/* Semi-transparent overlay for mobile when sidebar is open */}
-      {sidebarOpen && isMobile && (
-        <div className="fixed inset-0 z-30 pointer-events-none">
-          <div className="absolute left-0 top-0 bottom-0 w-60"></div>
-          
-          <div 
-            className="absolute right-0 top-0 bottom-0 left-60 bg-black/10 pointer-events-auto"
-            onClick={() => setSidebarOpen(false)}
-          ></div>
-        </div>
-      )}
+      <Toaster position="top-right" />
     </div>
   );
 };

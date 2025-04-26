@@ -1,35 +1,53 @@
 import React, { useEffect, useState } from 'react';
 import { ScrollArea } from '../../../components/ui/scroll-area';
 import { Button } from '../../../components/ui/button';
-import { ChevronDownIcon, MagnifyingGlassIcon, MoonIcon, SunIcon, PlusIcon, Cross2Icon } from '@radix-ui/react-icons';
-import AddSubjectDialog from './AddSubjectDialog';
+import { ChevronDownIcon, MagnifyingGlassIcon, MoonIcon, SunIcon, PlusIcon, StarIcon } from '@radix-ui/react-icons';
+import { Avatar, AvatarFallback, AvatarImage } from '../../../components/ui/avatar';
+import * as DialogPrimitive from '@radix-ui/react-dialog';
 import SidebarToggle from './SidebarToggle';
+import AddSubjectDialog from './AddSubjectDialog';
 
 const Sidebar = ({ 
   subjects, 
-  documents, 
   sidebarOpen,
   sidebarCollapsed, 
-  setSidebarCollapsed,
-  toggleSidebarCollapse,
+  toggleSidebar,
   classesExpanded,
   setClassesExpanded,
   selectedSubject,
   setSelectedSubject,
   searchQuery,
   setSearchQuery,
-  handleAddSubject,
+  onAddSubject,
+  onSelectTodo,
+  onSelectFavorites,
   isDarkMode,
   toggleDarkMode
 }) => {
+  
   const [isMobile, setIsMobile] = useState(false);
+  const [addSubjectOpen, setAddSubjectOpen] = useState(false);
+  const [userName, setUserName] = useState("User");
+  const [profilePicture, setProfilePicture] = useState(null);
+
+  function getUserDetails() {
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (user) {
+        setUserName(user.name);
+        setProfilePicture(user.profilePicture);
+      }
+    } catch (error) {
+      console.error("Error getting user details:", error);
+    }
+  }
 
   // Check if we're on mobile
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+    getUserDetails();
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -40,28 +58,48 @@ const Sidebar = ({
     setSelectedSubject(subjectId);
     // Close sidebar on mobile when an option is selected
     if (isMobile) {
-      toggleSidebarCollapse();
+      toggleSidebar();
     }
   };
 
-  // Function to handle clicking on a document on mobile
-  const handleSelectDocument = () => {
+  const handleSelectAllNotes = () => {
+    setSelectedSubject(null); // Deselect any subject
     // Close sidebar on mobile when an option is selected
     if (isMobile) {
-      toggleSidebarCollapse();
+      toggleSidebar();
     }
+  };
+
+  const handleSelectTodo = () => {
+    onSelectTodo();
+    if (isMobile) {
+      toggleSidebar();
+    }
+  };
+
+  const handleSelectFavorites = () => {
+    onSelectFavorites();
+    if (isMobile) {
+      toggleSidebar();
+    }
+  };
+
+  // Handle adding a new subject
+  const handleAddSubject = (newSubject) => {
+    onAddSubject(newSubject);
   };
 
   return (
     <>
+      {/* Mobile toggle button */}
       <div className={`
-        fixed top-1/4 left-0 z-50
+        fixed top-4 left-0 z-50
         transition-transform duration-300 ease-in-out
-        ${sidebarOpen ? 'translate-x-[240px]' : 'translate-x-0'}
+        ${sidebarOpen ? 'translate-x-64' : 'translate-x-0'}
         md:hidden
       `}>
         <SidebarToggle 
-          onClick={toggleSidebarCollapse} 
+          onClick={toggleSidebar} 
           isCollapsed={!sidebarOpen} 
           isMobile={true}
         />
@@ -71,12 +109,12 @@ const Sidebar = ({
         className={`
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
           md:translate-x-0 
-          fixed md:relative 
+          fixed md:sticky 
           top-0 left-0
-          h-full
+          h-screen
           z-40 
           transition-all duration-300 ease-in-out 
-          ${isMobile ? 'w-60' : sidebarCollapsed ? 'md:w-16' : 'md:w-64 lg:w-72'} 
+          ${isMobile ? 'w-64' : sidebarCollapsed ? 'md:w-16' : 'md:w-64 lg:w-72'} 
           bg-white dark:bg-gray-800 
           border-r border-gray-200 dark:border-gray-700 
           flex flex-col
@@ -87,22 +125,27 @@ const Sidebar = ({
         {/* Desktop Sidebar Toggle - Water Drop Style */}
         <div className="hidden md:block absolute -right-4 top-20 z-50">
           <SidebarToggle 
-            onClick={toggleSidebarCollapse} 
+            onClick={toggleSidebar} 
             isCollapsed={sidebarCollapsed} 
             isMobile={false}
           />
         </div>
         
-      
-        
         {/* User Profile and Theme Toggle */}
-        <div className={`pt-2 p-4 flex items-center ${sidebarCollapsed && !isMobile ? 'justify-center' : 'gap-3'} border-b border-gray-200 dark:border-gray-700`}>
-          <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
-            <span className="text-sm font-medium dark:text-gray-100">FW</span>
+        <div className={`pt-2 mt-2 p-4 flex items-center ${sidebarCollapsed && !isMobile ? 'justify-center' : 'gap-3'} border-b border-gray-200 dark:border-gray-700`}>
+          <div className="flex-shrink-0">
+            
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={profilePicture} alt={userName} />
+                <AvatarFallback className="bg-gray-200 dark:bg-gray-700 text-sm font-medium dark:text-gray-100">
+                  {userName?.split(' ').map(n => n[0]).join('').substring(0, 2) || "FW"}
+                </AvatarFallback>
+              </Avatar>
+           
           </div>
           {(!sidebarCollapsed || isMobile) && (
             <>
-              <div className="font-medium text-gray-800 dark:text-gray-100 truncate">Faizan Waince</div>
+              <div className="font-medium text-gray-800 dark:text-gray-100 truncate">{userName}</div>
               <button 
                 className="ml-auto text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                 onClick={toggleDarkMode}
@@ -128,49 +171,64 @@ const Sidebar = ({
           </div>
         )}
         
-        <ScrollArea className="flex-1 overflow-x-hidden">
+        <ScrollArea className="flex-1 overflow-y-auto overflow-x-hidden">
           <div className="p-2">
             <div className="space-y-1 mt-3">
               <button 
                 className={`w-full flex ${sidebarCollapsed && !isMobile ? 'justify-center' : 'items-center gap-2'} px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md`}
-                onClick={handleSelectDocument}
+                onClick={handleSelectAllNotes}
               >
                 <span className={`text-gray-500 dark:text-gray-400 ${sidebarCollapsed && !isMobile ? 'text-xl' : ''}`}>📝</span>
                 {(!sidebarCollapsed || isMobile) && "All notes"}
               </button>
             </div>
             
+            {/* Todo and Favorites Section */}
             <div className="mt-4">
               {(!sidebarCollapsed || isMobile) && (
-                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 px-3 py-1">DOCUMENTS</div>
+                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 px-3 py-1">QUICK ACCESS</div>
               )}
               <div className="mt-1 space-y-1">
-                {documents.map(doc => (
-                  <button 
-                    key={doc.id} 
-                    className={`w-full flex ${sidebarCollapsed && !isMobile ? 'justify-center' : 'items-center gap-2'} px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md`}
-                    title={sidebarCollapsed && !isMobile ? doc.name : ""}
-                    onClick={handleSelectDocument}
-                  >
-                    <span className={`${sidebarCollapsed && !isMobile ? 'text-xl' : ''}`}>{doc.icon}</span>
-                    {(!sidebarCollapsed || isMobile) && doc.name}
-                  </button>
-                ))}
+                {/* Todo Button */}
+                <button 
+                  className={`w-full flex ${sidebarCollapsed && !isMobile ? 'justify-center' : 'items-center gap-2'} px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md`}
+                  title={sidebarCollapsed && !isMobile ? "Todo" : ""}
+                  onClick={handleSelectTodo}
+                >
+                  <span className={`${sidebarCollapsed && !isMobile ? 'text-xl' : ''}`}>✅</span>
+                  {(!sidebarCollapsed || isMobile) && "Todo"}
+                </button>
+                
+                {/* Favorite Documents Button */}
+                <button 
+                  className={`w-full flex ${sidebarCollapsed && !isMobile ? 'justify-center' : 'items-center gap-2'} px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md`}
+                  title={sidebarCollapsed && !isMobile ? "Favorite Documents" : ""}
+                  onClick={handleSelectFavorites}
+                >
+                  <span className={`${sidebarCollapsed && !isMobile ? 'text-xl' : ''} text-yellow-500`}>
+                    <StarIcon className="h-4 w-4" />
+                  </span>
+                  {(!sidebarCollapsed || isMobile) && "Favorite Documents"}
+                </button>
               </div>
             </div>
             
             <div className="mt-4">
-              <button 
-                className={`w-full flex ${sidebarCollapsed && !isMobile ? 'justify-center' : 'items-center gap-2'} px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md`}
-                onClick={() => (!sidebarCollapsed || isMobile) && setClassesExpanded(!classesExpanded)}
-                title={sidebarCollapsed && !isMobile ? "Classes" : ""}
-              >
-                {(!sidebarCollapsed || isMobile) && (
-                  <ChevronDownIcon className={`${classesExpanded ? 'transform rotate-0' : 'transform -rotate-90'} transition-transform text-gray-500 dark:text-gray-400`} />
-                )}
-                <span className={`${sidebarCollapsed && !isMobile ? 'text-xl' : ''}`}>🎓</span>
-                {(!sidebarCollapsed || isMobile) && "Classes"}
-              </button>
+              <div className="flex justify-between items-center">
+                <button 
+                  className={`w-full flex ${sidebarCollapsed && !isMobile ? 'justify-center' : 'items-center gap-2'} px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md`}
+                  onClick={() => (!sidebarCollapsed || isMobile) && setClassesExpanded(!classesExpanded)}
+                  title={sidebarCollapsed && !isMobile ? "Classes" : ""}
+                >
+                  {(!sidebarCollapsed || isMobile) && (
+                    <ChevronDownIcon className={`${classesExpanded ? 'transform rotate-0' : 'transform -rotate-90'} transition-transform text-gray-500 dark:text-gray-400`} />
+                  )}
+                  <span className={`${sidebarCollapsed && !isMobile ? 'text-xl' : ''}`}>🎓</span>
+                  {(!sidebarCollapsed || isMobile) && "Classes"}
+                </button>
+                
+              
+              </div>
               
               {classesExpanded && (!sidebarCollapsed || isMobile) && (
                 <div className="mt-1 ml-4 space-y-1">
@@ -192,6 +250,20 @@ const Sidebar = ({
               )}
               
               {sidebarCollapsed && !isMobile && (
+                <div className="mt-4 flex flex-col items-center">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-800/50"
+                    title="Add Subject"
+                    onClick={() => setAddSubjectOpen(true)}
+                  >
+                    <PlusIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+              
+              {sidebarCollapsed && !isMobile && (
                 <div className="mt-1 space-y-1">
                   {subjects.map(subject => (
                     <button 
@@ -200,7 +272,7 @@ const Sidebar = ({
                       onClick={() => handleSelectSubject(subject.id)}
                       title={subject.name}
                     >
-                      <span className={`w-6 h-6 flex items-center justify-center rounded-md ${subject.color}`}>
+                      <span className={`w-5 h-5 flex items-center justify-center rounded-md ${subject.color}`}>
                         {subject.icon}
                       </span>
                     </button>
@@ -210,22 +282,32 @@ const Sidebar = ({
             </div>
           </div>
         </ScrollArea>
-        
-        {/* New Document Button */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-          {sidebarCollapsed && !isMobile ? (
-            <Button 
-              className="w-full flex justify-center bg-blue-600 hover:bg-blue-700 aspect-square"
-              onClick={() => setSidebarCollapsed(false)}
+    {/* New Document Button */}
+    <Button 
+              className="w-[90%] flex justify-center m-auto mb-2 aspect-square"
+              onClick={() => {
+                console.log("clicked");
+                setAddSubjectOpen(true);
+              }}
               title="Add New Document"
             >
               <PlusIcon className="h-5 w-5" />
+          {  !sidebarCollapsed && <p>Add Subject</p>}
             </Button>
-          ) : (
-            <AddSubjectDialog onAddSubject={handleAddSubject} />
-          )}
-        </div>
-      </aside>
+
+      </aside> 
+
+      {/* Add Subject Dialog */}
+      <DialogPrimitive.Root open={addSubjectOpen} onOpenChange={setAddSubjectOpen}>
+        <DialogPrimitive.Portal>
+          <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50" />
+          <DialogPrimitive.Content className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-white dark:bg-gray-800 p-6 shadow-lg rounded-lg">
+            <AddSubjectDialog
+              onAddSubject={handleAddSubject}
+            />
+          </DialogPrimitive.Content>
+        </DialogPrimitive.Portal>
+      </DialogPrimitive.Root>
     </>
   );
 };

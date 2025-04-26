@@ -3,14 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import FormInput from './FormInput';
 import { Button } from '../../../components/ui/button';
 import { FaGoogle } from 'react-icons/fa';
+import { useAuth } from '../../../context/AuthContext';
+import config from '../../../config';
 
 const LoginForm = ({ onForgotPassword }) => {
   const navigate = useNavigate();
+  const { login, googleLogin } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loginError, setLoginError] = useState('');
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -24,6 +29,9 @@ const LoginForm = ({ onForgotPassword }) => {
         ...prev,
         [id]: ''
       }));
+    }
+    if (loginError) {
+      setLoginError('');
     }
   };
 
@@ -40,21 +48,51 @@ const LoginForm = ({ onForgotPassword }) => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validateForm();
     
     if (Object.keys(newErrors).length === 0) {
-      // Handle login logic here
-      navigate('/dashboard');
+      setIsSubmitting(true);
+      setLoginError('');
+      
+      try {
+        // Call your API to authenticate
+        const response = await fetch(`${config.api.baseUrl}/api/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password
+          }),
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          // Use login from AuthContext
+          login(data.user, data.token);
+          navigate('/dashboard');
+        } else {
+          setLoginError(data.message || 'Invalid email or password');
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        setLoginError('An error occurred during login. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
     } else {
       setErrors(newErrors);
     }
   };
 
-  const handleGoogleLogin = () => {
-    // Handle Google login logic here
-    console.log('Google login clicked');
+  const handleGoogleLogin = async () => {
+    // Google login would typically redirect to Google OAuth
+    // For this implementation, we'll create a placeholder
+    window.location.href = `${config.api.baseUrl}/api/auth/google`;
   };
 
   const handleForgotPasswordClick = (e) => {
@@ -67,6 +105,12 @@ const LoginForm = ({ onForgotPassword }) => {
   return (
     <div className="transition-all duration-300 ease-out transform animate-form">
       <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-6 text-left">Login to your account</h2>
+      
+      {loginError && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {loginError}
+        </div>
+      )}
       
       <form onSubmit={handleSubmit} className="space-y-6">
         <FormInput
@@ -115,8 +159,9 @@ const LoginForm = ({ onForgotPassword }) => {
         <Button 
           type="submit" 
           className="w-full bg-[#FF6347] hover:bg-[#FF5339] text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
+          disabled={isSubmitting}
         >
-          Login
+          {isSubmitting ? 'Logging in...' : 'Login'}
         </Button>
 
         <div className="relative my-6">

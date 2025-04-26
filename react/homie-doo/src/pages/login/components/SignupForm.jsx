@@ -3,9 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import FormInput from './FormInput';
 import { Button } from '../../../components/ui/button';
 import { FaGoogle } from 'react-icons/fa';
+import { useAuth } from '../../../context/AuthContext';
+import config from '../../../config';
 
 const SignupForm = () => {
   const navigate = useNavigate();
+  const { register, googleLogin } = useAuth();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -13,6 +16,8 @@ const SignupForm = () => {
     confirmPassword: ''
   });
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [signupError, setSignupError] = useState('');
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -26,6 +31,9 @@ const SignupForm = () => {
         ...prev,
         [id]: ''
       }));
+    }
+    if (signupError) {
+      setSignupError('');
     }
   };
 
@@ -52,21 +60,52 @@ const SignupForm = () => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validateForm();
     
     if (Object.keys(newErrors).length === 0) {
-      // Handle signup logic here
-      navigate('/dashboard');
+      setIsSubmitting(true);
+      setSignupError('');
+      
+      try {
+        // Call your API to register
+        const response = await fetch(`${config.api.baseUrl}/api/auth/register`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: formData.fullName,
+            email: formData.email,
+            password: formData.password
+          }),
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          // Use register from AuthContext
+          register(data.user, data.token);
+          navigate('/dashboard');
+        } else {
+          setSignupError(data.message || 'Registration failed. Please try again.');
+        }
+      } catch (error) {
+        console.error('Registration error:', error);
+        setSignupError('An error occurred during registration. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
     } else {
       setErrors(newErrors);
     }
   };
 
-  const handleGoogleSignup = () => {
-    // Handle Google signup logic here
-    console.log('Google signup clicked');
+  const handleGoogleSignup = async () => {
+    // Google login would typically redirect to Google OAuth
+    // For this implementation, we'll create a placeholder
+    window.location.href = `${config.api.baseUrl}/api/auth/google`;
   };
 
   return (
@@ -74,6 +113,12 @@ const SignupForm = () => {
       <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-6 text-left">
         Create an account
       </h2>
+      
+      {signupError && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {signupError}
+        </div>
+      )}
       
       <div className="form-container">
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -143,8 +188,9 @@ const SignupForm = () => {
           <Button 
             type="submit" 
             className="w-full bg-[#FF6347] hover:bg-[#FF5339] text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200"
+            disabled={isSubmitting}
           >
-            Sign Up
+            {isSubmitting ? 'Signing Up...' : 'Sign Up'}
           </Button>
 
           <div className="relative my-6">
