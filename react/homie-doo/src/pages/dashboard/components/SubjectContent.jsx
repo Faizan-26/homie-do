@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { toast } from 'sonner';
+import { toast } from 'react-hot-toast';
 import { Button } from '../../../components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../../components/ui/dialog';
 import { 
   AddUnitDialog,
   EditUnitDialog,
@@ -22,13 +21,41 @@ import {
   EditNoteDialog
 } from './ContentDialogs';
 import { Star, FileText, Calendar, Clock } from 'lucide-react';
+import subjectService from '../../../services/subjectService';
+
+// Import utility functions from our integration file
+import {
+  handleAddUnit,
+  handleUpdateUnit,
+  handleDeleteUnit,
+  handleAddChapter,
+  handleUpdateChapter,
+  handleDeleteChapter,
+  handleAddSubtopic,
+  handleUpdateSubtopic,
+  handleDeleteSubtopic,
+  handleAddLecture,
+  handleUpdateLecture,
+  handleDeleteLecture,
+  handleAddReading,
+  handleUpdateReading,
+  handleDeleteReading,
+  handleAddAssignment,
+  handleUpdateAssignment,
+  handleDeleteAssignment,
+  handleAddNote,
+  handleUpdateNote,
+  handleDeleteNote
+} from '../../../utils/subject-integration.jsx';
 
 const SubjectContent = ({ subject, updateSubject, favorites, toggleFavorite }) => {
   const [selectedTab, setSelectedTab] = useState('syllabus');
+  const [loading, setLoading] = useState(false);
+  const [workingSubject, setWorkingSubject] = useState(subject);
   
   const [addUnitDialogOpen, setAddUnitDialogOpen] = useState(false);
   const [editUnitDialogOpen, setEditUnitDialogOpen] = useState(false);
-  const [selectedUnitIndex, setSelectedUnitIndex] = useState(null);
+  const [selectedUnit, setSelectedUnit] = useState(null);
   
   const [addChapterDialogOpen, setAddChapterDialogOpen] = useState(false);
   const [editChapterDialogOpen, setEditChapterDialogOpen] = useState(false);
@@ -54,352 +81,374 @@ const SubjectContent = ({ subject, updateSubject, favorites, toggleFavorite }) =
   const [editNoteDialogOpen, setEditNoteDialogOpen] = useState(false);
   const [selectedNoteForEdit, setSelectedNoteForEdit] = useState(null);
 
+  // Load syllabus data when component mounts or subject changes
+  useEffect(() => {
+    const loadSyllabusData = async () => {
+      try {
+        setLoading(true);
+        setWorkingSubject(subject);
+        
+        // If subject has no syllabus or syllabus data, create one
+        if (!subject.courseMaterials.syllabus) {
+          console.log('Subject has no syllabus, creating one...');
+          const syllabusService = subjectService.createSyllabus(subject.id, syllabusData);
+          
+          // Create a new syllabus
+          const syllabusData = {
+            title: `${subject.name} Syllabus`,
+            description: `Syllabus for ${subject.name}`,
+            subjectId: subject.id,
+            topics: []
+          };
+          
+          try {
+            const syllabus = await syllabusService.createSyllabus(subject.id, syllabusData);
+            
+            if (syllabus) {
+              // Update the working subject with the new syllabus
+              const updatedSubject = {
+                ...subject,
+                courseMaterials: {
+                  ...subject.courseMaterials,
+                  syllabus: {
+                    id: syllabus.id,
+                    title: syllabus.name || `${subject.name} Syllabus`,
+                    content: syllabus.description || subject.description || '',
+                    sections: syllabus.units || []
+                  }
+                }
+              };
+              
+              setWorkingSubject(updatedSubject);
+              updateSubject(updatedSubject);
+            }
+          } catch (err) {
+            console.error('Error creating syllabus:', err);
+            toast.error('Failed to create syllabus');
+          }
+        } else if (subject.courseMaterials.syllabus && subject.courseMaterials.syllabus.id) {
+          // If subject has a syllabus ID, fetch the latest data
+          try {
+            console.log('Subject has syllabus ID, fetching latest data...');
+            const syllabusData = subjectService.getSyllabusById(subject.courseMaterials.syllabus.id);
+            
+            if (syllabusData) {
+              // Update the working subject with the latest syllabus data
+              const updatedSubject = {
+                ...subject,
+                courseMaterials: {
+                  ...subject.courseMaterials,
+                  syllabus: {
+                    id: syllabusData.id,
+                    title: syllabusData.name || subject.courseMaterials.syllabus.title,
+                    content: syllabusData.description || subject.courseMaterials.syllabus.content,
+                    sections: syllabusData.units || subject.courseMaterials.syllabus.sections
+                  }
+                }
+              };
+              
+              setWorkingSubject(updatedSubject);
+            }
+          } catch (err) {
+            console.error('Error fetching syllabus:', err);
+          }
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('Error loading syllabus data:', error);
+        setLoading(false);
+      }
+    };
+    
+    loadSyllabusData();
+  }, [subject.id]);
+
   // Check if an item is favorited
   const isFavorited = (type, id) => {
-    const favoriteId = `${type}_${subject.id}_${id}`;
+    const favoriteId = `${type}_${workingSubject.id}_${id}`;
     return favorites.includes(favoriteId);
   };
 
   // Handle favorite toggle
   const handleToggleFavorite = (type, id) => {
-    toggleFavorite(type, subject.id, id);
+    toggleFavorite(type, workingSubject.id, id);
   };
   
   // Handle sync with parent component
   const handleSyncWithParent = (updatedSubject) => {
+    // Update local state
+    setWorkingSubject(updatedSubject);
     // Send updated subject back to parent component
     updateSubject(updatedSubject);
   };
   
   // ===== SYLLABUS CRUD OPERATIONS =====
   
-  const handleAddUnit = (newUnit) => {
-    const updatedSyllabus = { ...subject.courseMaterials.syllabus };
-    if (!updatedSyllabus.sections) {
-      updatedSyllabus.sections = [];
+  const onAddUnit = async (newUnit) => {
+    try {
+      const updatedSubject = await handleAddUnit(workingSubject, newUnit);
+      handleSyncWithParent(updatedSubject);
+      toast.success(`Unit "${newUnit.title}" added successfully!`);
+    } catch (error) {
+      toast.error('Failed to add unit');
     }
-    updatedSyllabus.sections.push({
-      ...newUnit,
-      chapters: []
-    });
-    
-    const updatedSubject = { ...subject, courseMaterials: { ...subject.courseMaterials, syllabus: updatedSyllabus } };
-    handleSyncWithParent(updatedSubject);
-    toast.success(`Unit "${newUnit.title}" added successfully!`);
   };
   
-  const handleUpdateUnit = (updatedUnit) => {
-    const updatedSyllabus = { ...subject.courseMaterials.syllabus };
-    updatedSyllabus.sections[selectedUnitIndex] = {
-      ...updatedSyllabus.sections[selectedUnitIndex],
-      title: updatedUnit.title,
-      weeks: updatedUnit.weeks
-    };
-    
-    const updatedSubject = { ...subject, courseMaterials: { ...subject.courseMaterials, syllabus: updatedSyllabus } };
-    handleSyncWithParent(updatedSubject);
-    // toast.success(`Unit "${updatedUnit.title}" updated successfully!`);
-  };
-  
-  const handleAddChapter = (newChapter) => {
-    const updatedSyllabus = { ...subject.courseMaterials.syllabus };
-    if (!updatedSyllabus.sections[selectedChapterData.unitIndex].chapters) {
-      updatedSyllabus.sections[selectedChapterData.unitIndex].chapters = [];
+  const onUpdateUnit = async (updatedUnit) => {
+    try {
+      const updatedSubject = await handleUpdateUnit(workingSubject, updatedUnit);
+      handleSyncWithParent(updatedSubject);
+    } catch (error) {
+      toast.error('Failed to update unit');
     }
-    updatedSyllabus.sections[selectedChapterData.unitIndex].chapters.push({
-      ...newChapter,
-      subtopics: []
-    });
-    
-    const updatedSubject = { ...subject, courseMaterials: { ...subject.courseMaterials, syllabus: updatedSyllabus } };
-    handleSyncWithParent(updatedSubject);
-    toast.success(`Chapter "${newChapter.title}" added successfully!`);
   };
   
-  const handleUpdateChapter = (updatedChapter) => {
+  const onDeleteUnit = async (unitId) => {
+    try {
+      const unit = workingSubject.courseMaterials.syllabus.sections.find(u => u.id === unitId);
+      const updatedSubject = await handleDeleteUnit(workingSubject, unitId);
+      handleSyncWithParent(updatedSubject);
+      toast.success(`Unit "${unit?.title || ''}" deleted successfully!`);
+    } catch (error) {
+      toast.error('Failed to delete unit');
+    }
+  };
+  
+  const onAddChapter = async (newChapter) => {
+    try {
+      const updatedSubject = await handleAddChapter(workingSubject, selectedChapterData.unitId, newChapter);
+      handleSyncWithParent(updatedSubject);
+      toast.success(`Chapter "${newChapter.title}" added successfully!`);
+    } catch (error) {
+      toast.error('Failed to add chapter');
+    }
+  };
+  
+  const onUpdateChapter = async (updatedChapter) => {
     if (!updatedChapter) return;
     
-    // Create a deep copy of the current subject
-    const updatedSubject = JSON.parse(JSON.stringify(subject));
-    
-    // Find the unit containing the chapter
-    const unitIndex = updatedSubject.courseMaterials.syllabus.sections.findIndex(
-      unit => unit.title === updatedChapter.title
-    );
-    console.log("Unit Index:", unitIndex);
-    if (unitIndex === -1) return;
-    
-    // Find the chapter within the unit
-    const chapterIndex = updatedSubject.courseMaterials.syllabus.sections[unitIndex].chapters.findIndex(
-      chapter => chapter.title === updatedChapter.title
-    );
-    
-    if (chapterIndex === -1) return;
-    
-    // Update the chapter
-    updatedSubject.courseMaterials.syllabus.sections[unitIndex].chapters[chapterIndex] = updatedChapter;
-    
-    // Update the state
-    handleSyncWithParent(updatedSubject);
-    
-    // Reset selection and close dialog
-    setSelectedChapterData(null);
-    setEditChapterDialogOpen(false);
-    
-    // Show success toast
-    toast.success("Chapter updated successfully!");
-  };
-  
-  const handleAddSubtopic = (newSubtopic) => {
-    const updatedSyllabus = { ...subject.courseMaterials.syllabus };
-    const unitIndex = selectedSubtopicData.unitIndex;
-    const chapterIndex = selectedSubtopicData.chapterIndex;
-    
-    if (!updatedSyllabus.sections[unitIndex].chapters[chapterIndex].subtopics) {
-      updatedSyllabus.sections[unitIndex].chapters[chapterIndex].subtopics = [];
+    try {
+      const updatedSubject = await handleUpdateChapter(workingSubject, selectedChapterData.unitId, updatedChapter);
+      handleSyncWithParent(updatedSubject);
+      
+      // Reset selection and close dialog
+      setSelectedChapterData(null);
+      setEditChapterDialogOpen(false);
+    } catch (error) {
+      toast.error('Failed to update chapter');
     }
-    
-    updatedSyllabus.sections[unitIndex].chapters[chapterIndex].subtopics.push(newSubtopic.title);
-    
-    const updatedSubject = { ...subject, courseMaterials: { ...subject.courseMaterials, syllabus: updatedSyllabus } };
-    handleSyncWithParent(updatedSubject);
-    toast.success(`Subtopic "${newSubtopic.title}" added successfully!`);
   };
   
-  const handleUpdateSubtopic = (updatedContent) => {
-    const updatedSyllabus = { ...subject.courseMaterials.syllabus };
-    const unitIndex = selectedSubtopicData.unitIndex;
-    const chapterIndex = selectedSubtopicData.chapterIndex;
-    const subtopicIndex = selectedSubtopicData.subtopicIndex;
-    
-    updatedSyllabus.sections[unitIndex].chapters[chapterIndex].subtopics[subtopicIndex] = updatedContent.title;
-    
-    const updatedSubject = { ...subject, courseMaterials: { ...subject.courseMaterials, syllabus: updatedSyllabus } };
-    handleSyncWithParent(updatedSubject);
-    // toast.success(`Subtopic updated successfully!`);
+  const onDeleteChapter = async (unitId, chapterId) => {
+    try {
+      const unit = workingSubject.courseMaterials.syllabus.sections.find(u => u.id === unitId);
+      const chapter = unit?.chapters.find(c => c.id === chapterId);
+      
+      const updatedSubject = await handleDeleteChapter(workingSubject, unitId, chapterId);
+      handleSyncWithParent(updatedSubject);
+      
+      toast.success(`Chapter "${chapter?.title || ''}" deleted successfully!`);
+    } catch (error) {
+      toast.error('Failed to delete chapter');
+    }
+  };
+  
+  const onAddSubtopic = async (newSubtopic) => {
+    try {
+      const { unitId, chapterId } = selectedSubtopicData;
+      
+      const updatedSubject = await handleAddSubtopic(
+        workingSubject, 
+        unitId, 
+        chapterId, 
+        newSubtopic
+      );
+      
+      handleSyncWithParent(updatedSubject);
+      toast.success(`Subtopic "${newSubtopic.title}" added successfully!`);
+    } catch (error) {
+      toast.error('Failed to add subtopic');
+    }
+  };
+  
+  const onUpdateSubtopic = async (updatedContent) => {
+    try {
+      const { unitId, chapterId, subtopicId } = selectedSubtopicData;
+      
+      const updatedSubject = await handleUpdateSubtopic(
+        workingSubject,
+        unitId,
+        chapterId,
+        subtopicId,
+        updatedContent
+      );
+      
+      handleSyncWithParent(updatedSubject);
+      toast.success('Subtopic updated successfully!');
+    } catch (error) {
+      toast.error('Failed to update subtopic');
+    }
+  };
+  
+  const onDeleteSubtopic = async (unitId, chapterId, subtopicId) => {
+    try {
+      const unit = workingSubject.courseMaterials.syllabus.sections.find(u => u.id === unitId);
+      const chapter = unit?.chapters.find(c => c.id === chapterId);
+      const subtopic = chapter?.subtopics.find(s => s.id === subtopicId);
+      
+      const updatedSubject = await handleDeleteSubtopic(
+        workingSubject,
+        unitId,
+        chapterId,
+        subtopicId
+      );
+      
+      handleSyncWithParent(updatedSubject);
+      toast.success(`Subtopic "${subtopic?.title || ''}" deleted successfully!`);
+    } catch (error) {
+      toast.error('Failed to delete subtopic');
+    }
   };
   
   // ===== LECTURE CRUD OPERATIONS =====
   
-  const handleAddLecture = (lectureData) => {
-    const lectureId = `lecture_${Date.now()}`;
-    const newLecture = {
-      id: lectureId,
-      title: lectureData.title,
-      date: lectureData.date,
-      content: lectureData.content,
-      attachments: lectureData.attachments || []
-    };
-    
-    let updatedCourseMaterials = { ...subject.courseMaterials };
-    if (!updatedCourseMaterials.lectures) {
-      updatedCourseMaterials.lectures = [];
+  const onAddLecture = async (lectureData) => {
+    try {
+      const updatedSubject = await handleAddLecture(workingSubject, lectureData);
+      handleSyncWithParent(updatedSubject);
+      toast.success(`Lecture "${lectureData.title}" added successfully!`);
+    } catch (error) {
+      toast.error('Failed to add lecture');
     }
-    
-    updatedCourseMaterials.lectures = [...updatedCourseMaterials.lectures, newLecture];
-    
-    const updatedSubject = { ...subject, courseMaterials: updatedCourseMaterials };
-    handleSyncWithParent(updatedSubject);
-    toast.success(`Lecture "${lectureData.title}" added successfully!`);
   };
   
-  const handleUpdateLecture = (updatedLecture) => {
-    if (!selectedLecture) return;
-    
-    const updatedCourseMaterials = { ...subject.courseMaterials };
-    const lectureIndex = updatedCourseMaterials.lectures.findIndex(lecture => lecture.id === selectedLecture.id);
-    
-    if (lectureIndex !== -1) {
-      updatedCourseMaterials.lectures[lectureIndex] = {
-        ...updatedCourseMaterials.lectures[lectureIndex],
-        title: updatedLecture.title,
-        date: updatedLecture.date,
-        content: updatedLecture.content,
-        attachments: updatedLecture.attachments || []
-      };
-      
-      const updatedSubject = { ...subject, courseMaterials: updatedCourseMaterials };
+  const onUpdateLecture = async (lectureData) => {
+    try {
+      const updatedSubject = await handleUpdateLecture(workingSubject, lectureData);
       handleSyncWithParent(updatedSubject);
-      // toast.success(`Lecture "${updatedLecture.title}" updated successfully!`);
+      toast.success(`Lecture "${lectureData.title}" updated successfully!`);
+    } catch (error) {
+      toast.error('Failed to update lecture');
+    }
+  };
+  
+  const onDeleteLecture = async (lectureId) => {
+    try {
+      const lecture = workingSubject.courseMaterials.lectures.find(l => l.id === lectureId);
+      
+      const updatedSubject = await handleDeleteLecture(workingSubject, lectureId);
+      handleSyncWithParent(updatedSubject);
+      
+      toast.success(`Lecture "${lecture?.title || ''}" deleted successfully!`);
+    } catch (error) {
+      toast.error('Failed to delete lecture');
     }
   };
   
   // ===== READING CRUD OPERATIONS =====
   
-  const handleAddReading = (readingData) => {
-    const readingId = `reading_${Date.now()}`;
-    const newReading = {
-      id: readingId,
-      title: readingData.title,
-      author: readingData.author,
-      type: readingData.type,
-      chapters: readingData.chapters,
-      source: readingData.source,
-      length: readingData.length
-    };
-    
-    let updatedCourseMaterials = { ...subject.courseMaterials };
-    if (!updatedCourseMaterials.readings) {
-      updatedCourseMaterials.readings = [];
+  const onAddReading = async (readingData) => {
+    try {
+      const updatedSubject = await handleAddReading(workingSubject, readingData);
+      handleSyncWithParent(updatedSubject);
+      toast.success(`Reading "${readingData.title}" added successfully!`);
+    } catch (error) {
+      toast.error('Failed to add reading');
     }
-    
-    updatedCourseMaterials.readings = [...updatedCourseMaterials.readings, newReading];
-    
-    const updatedSubject = { ...subject, courseMaterials: updatedCourseMaterials };
-    handleSyncWithParent(updatedSubject);
-    toast.success(`Reading "${readingData.title}" added successfully!`);
   };
   
-  const handleUpdateReading = (updatedReading) => {
-    if (!selectedReading) return;
-    
-    const updatedCourseMaterials = { ...subject.courseMaterials };
-    const readingIndex = updatedCourseMaterials.readings.findIndex(reading => reading.id === selectedReading.id);
-    
-    if (readingIndex !== -1) {
-      updatedCourseMaterials.readings[readingIndex] = {
-        ...updatedCourseMaterials.readings[readingIndex],
-        title: updatedReading.title,
-        author: updatedReading.author,
-        type: updatedReading.type,
-        chapters: updatedReading.chapters,
-        source: updatedReading.source,
-        length: updatedReading.length
-      };
-      
-      const updatedSubject = { ...subject, courseMaterials: updatedCourseMaterials };
+  const onUpdateReading = async (readingData) => {
+    try {
+      const updatedSubject = await handleUpdateReading(workingSubject, readingData);
       handleSyncWithParent(updatedSubject);
-      // toast.success(`Reading "${updatedReading.title}" updated successfully!`);
+      toast.success(`Reading "${readingData.title}" updated successfully!`);
+    } catch (error) {
+      toast.error('Failed to update reading');
+    }
+  };
+  
+  const onDeleteReading = async (readingId) => {
+    try {
+      const reading = workingSubject.courseMaterials.readings.find(r => r.id === readingId);
+      
+      const updatedSubject = await handleDeleteReading(workingSubject, readingId);
+      handleSyncWithParent(updatedSubject);
+      
+      toast.success(`Reading "${reading?.title || ''}" deleted successfully!`);
+    } catch (error) {
+      toast.error('Failed to delete reading');
     }
   };
   
   // ===== ASSIGNMENT CRUD OPERATIONS =====
   
-  const handleAddAssignment = (assignmentData) => {
-    const assignmentId = `assignment_${Date.now()}`;
-    const newAssignment = {
-      id: assignmentId,
-      title: assignmentData.title,
-      dueDate: assignmentData.dueDate,
-      points: assignmentData.points,
-      instructions: assignmentData.instructions,
-      attachments: assignmentData.attachments || [],
-      files: assignmentData.files || []
-    };
-    
-    let updatedCourseMaterials = { ...subject.courseMaterials };
-    if (!updatedCourseMaterials.assignments) {
-      updatedCourseMaterials.assignments = [];
+  const onAddAssignment = async (assignmentData) => {
+    try {
+      const updatedSubject = await handleAddAssignment(workingSubject, assignmentData);
+      handleSyncWithParent(updatedSubject);
+      toast.success(`Assignment "${assignmentData.title}" added successfully!`);
+    } catch (error) {
+      toast.error('Failed to add assignment');
     }
-    
-    updatedCourseMaterials.assignments = [...updatedCourseMaterials.assignments, newAssignment];
-    
-    const updatedSubject = { ...subject, courseMaterials: updatedCourseMaterials };
-    handleSyncWithParent(updatedSubject);
-    toast.success(`Assignment "${assignmentData.title}" added successfully!`);
   };
   
-  const handleUpdateAssignment = (updatedAssignment) => {
-    if (!selectedAssignment) return;
-    
-    const updatedCourseMaterials = { ...subject.courseMaterials };
-    const assignmentIndex = updatedCourseMaterials.assignments.findIndex(assignment => assignment.id === selectedAssignment.id);
-    
-    if (assignmentIndex !== -1) {
-      updatedCourseMaterials.assignments[assignmentIndex] = {
-        ...updatedCourseMaterials.assignments[assignmentIndex],
-        title: updatedAssignment.title,
-        dueDate: updatedAssignment.dueDate,
-        points: updatedAssignment.points,
-        instructions: updatedAssignment.instructions,
-        attachments: updatedAssignment.attachments || [],
-        files: updatedAssignment.files || []
-      };
-      
-      const updatedSubject = { ...subject, courseMaterials: updatedCourseMaterials };
+  const onUpdateAssignment = async (assignmentData) => {
+    try {
+      const updatedSubject = await handleUpdateAssignment(workingSubject, assignmentData);
       handleSyncWithParent(updatedSubject);
-      // toast.success(`Assignment "${updatedAssignment.title}" updated successfully!`);
+      toast.success(`Assignment "${assignmentData.title}" updated successfully!`);
+    } catch (error) {
+      toast.error('Failed to update assignment');
+    }
+  };
+  
+  const onDeleteAssignment = async (assignmentId) => {
+    try {
+      const assignment = workingSubject.courseMaterials.assignments.find(a => a.id === assignmentId);
+      
+      const updatedSubject = await handleDeleteAssignment(workingSubject, assignmentId);
+      handleSyncWithParent(updatedSubject);
+      
+      toast.success(`Assignment "${assignment?.title || ''}" deleted successfully!`);
+    } catch (error) {
+      toast.error('Failed to delete assignment');
     }
   };
   
   // ===== NOTES CRUD OPERATIONS =====
   
-  const handleAddNote = (newNote) => {
-    const noteId = `note_${Date.now()}`;
-    const note = {
-      id: noteId,
-      title: newNote.title,
-      content: newNote.content,
-      date: new Date().toISOString().split('T')[0]
-    };
-    
-    let updatedSubject = { ...subject };
-    if (!updatedSubject.notes) {
-      updatedSubject.notes = [];
-    }
-    
-    updatedSubject.notes = [...updatedSubject.notes, note];
-    handleSyncWithParent(updatedSubject);
-    toast.success(`Note "${note.title}" added successfully!`);
-  };
-  
-  const handleUpdateNote = (updatedNote) => {
-    if (!selectedNoteForEdit) return;
-    
-    let updatedSubject = { ...subject };
-    const noteIndex = updatedSubject.notes.findIndex(note => note.id === selectedNoteForEdit.id);
-    
-    if (noteIndex !== -1) {
-      updatedSubject.notes[noteIndex] = {
-        ...updatedSubject.notes[noteIndex],
-        title: updatedNote.title,
-        content: updatedNote.content
-      };
-      
+  const onAddNote = async (noteData) => {
+    try {
+      const updatedSubject = await handleAddNote(workingSubject, noteData);
       handleSyncWithParent(updatedSubject);
-      // toast.success(`Note "${updatedNote.title}" updated successfully!`);
+      toast.success(`Note "${noteData.title}" added successfully!`);
+    } catch (error) {
+      toast.error('Failed to add note');
     }
   };
   
-  // ===== DELETE OPERATIONS =====
-  
-  const handleDeleteLecture = (lectureId) => {
-    const lecture = subject.courseMaterials.lectures.find(l => l.id === lectureId);
-    const updatedCourseMaterials = { ...subject.courseMaterials };
-    updatedCourseMaterials.lectures = updatedCourseMaterials.lectures.filter(lecture => lecture.id !== lectureId);
-    
-    const updatedSubject = { ...subject, courseMaterials: updatedCourseMaterials };
-    handleSyncWithParent(updatedSubject);
-    toast.success(`Lecture ${lecture?.title || ''} deleted successfully!`);
+  const onUpdateNote = async (noteData) => {
+    try {
+      const updatedSubject = await handleUpdateNote(workingSubject, noteData);
+      handleSyncWithParent(updatedSubject);
+      toast.success(`Note "${noteData.title}" updated successfully!`);
+    } catch (error) {
+      toast.error('Failed to update note');
+    }
   };
   
-  const handleDeleteReading = (readingId) => {
-    const reading = subject.courseMaterials.readings.find(r => r.id === readingId);
-    const updatedCourseMaterials = { ...subject.courseMaterials };
-    updatedCourseMaterials.readings = updatedCourseMaterials.readings.filter(reading => reading.id !== readingId);
-    
-    const updatedSubject = { ...subject, courseMaterials: updatedCourseMaterials };
-    handleSyncWithParent(updatedSubject);
-    toast.success(`Reading "${reading?.title || ''}" deleted successfully!`);
-  };
-  
-  const handleDeleteAssignment = (assignmentId) => {
-    const assignment = subject.courseMaterials.assignments.find(a => a.id === assignmentId);
-    const updatedCourseMaterials = { ...subject.courseMaterials };
-    updatedCourseMaterials.assignments = updatedCourseMaterials.assignments.filter(assignment => assignment.id !== assignmentId);
-    
-    const updatedSubject = { ...subject, courseMaterials: updatedCourseMaterials };
-    handleSyncWithParent(updatedSubject);
-    toast.success(`Assignment "${assignment?.title || ''}" deleted successfully!`);
-  };
-  
-  const handleDeleteNote = (noteId) => {
-    const note = subject.notes.find(n => n.id === noteId);
-    let updatedSubject = { ...subject };
-    updatedSubject.notes = updatedSubject.notes.filter(note => note.id !== noteId);
-    
-    handleSyncWithParent(updatedSubject);
-    toast.success(`Note "${note?.title || ''}" deleted successfully!`);
+  const onDeleteNote = async (noteId) => {
+    try {
+      const note = workingSubject.notes.find(n => n.id === noteId);
+      
+      const updatedSubject = await handleDeleteNote(workingSubject, noteId);
+      handleSyncWithParent(updatedSubject);
+      
+      toast.success(`Note "${note?.title || ''}" deleted successfully!`);
+    } catch (error) {
+      toast.error('Failed to delete note');
+    }
   };
 
   // Render file attachment chips
@@ -452,7 +501,7 @@ const SubjectContent = ({ subject, updateSubject, favorites, toggleFavorite }) =
               Edit
             </button>
             <button 
-              onClick={() => handleDeleteLecture(lecture.id)}
+              onClick={() => onDeleteLecture(lecture.id)}
               className="text-red-500 hover:text-red-700 px-2 py-1"
             >
               Delete
@@ -493,7 +542,7 @@ const SubjectContent = ({ subject, updateSubject, favorites, toggleFavorite }) =
               Edit
             </button>
             <button 
-              onClick={() => handleDeleteReading(reading.id)}
+              onClick={() => onDeleteReading(reading.id)}
               className="text-red-500 hover:text-red-700 px-2 py-1"
             >
               Delete
@@ -576,7 +625,7 @@ const SubjectContent = ({ subject, updateSubject, favorites, toggleFavorite }) =
               Edit
             </button>
             <button 
-              onClick={() => handleDeleteAssignment(assignment.id)}
+              onClick={() => onDeleteAssignment(assignment.id)}
               className="text-red-500 hover:text-red-700 px-2 py-1"
             >
               Delete
@@ -588,448 +637,474 @@ const SubjectContent = ({ subject, updateSubject, favorites, toggleFavorite }) =
     );
   };
 
-  return (
-    <div className="p-4 md:p-6">
-      <h1 className="text-2xl font-bold mb-6">{subject.name}</h1>
-      
-      {/* Tab Navigation */}
-      <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
-        <div className="flex space-x-4">
-          <button
-            className={`py-2 px-4 text-sm font-medium ${selectedTab === 'syllabus' ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'}`}
-            onClick={() => setSelectedTab('syllabus')}
+  // Helper function to render note cards
+  const renderNoteCard = (note) => (
+    <div key={note.id} className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 rounded-md">
+      <div className="flex justify-between">
+        <h3 className="font-semibold text-lg mb-2">{note.title}</h3>
+        <div className="flex space-x-2">
+          <Button 
+            variant="ghost" 
+            className="h-7 w-7 p-0"
+            onClick={() => {
+              setSelectedNoteForEdit(note);
+              setEditNoteDialogOpen(true);
+            }}
           >
-            Syllabus
-          </button>
-          <button
-            className={`py-2 px-4 text-sm font-medium ${selectedTab === 'notes' ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'}`}
-            onClick={() => setSelectedTab('notes')}
+            ✏️
+          </Button>
+          <Button 
+            variant="ghost" 
+            className="h-7 w-7 p-0 text-red-500"
+            onClick={() => onDeleteNote(note.id)}
           >
-            Notes
-          </button>
+            🗑️
+          </Button>
         </div>
       </div>
+      <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+        Created: {new Date(note.createdAt || Date.now()).toLocaleDateString()}
+      </div>
+      <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{note.content}</p>
+    </div>
+  );
 
-      {/* Course Materials Tab */}
-      <div>
-        {/* Materials Navigation */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          <Button
-            variant={selectedTab === 'syllabus' ? 'default' : 'outline'}
-            onClick={() => setSelectedTab('syllabus')}
-          >
-            Syllabus
-          </Button>
-          <Button
-            variant={selectedTab === 'lectures' ? 'default' : 'outline'}
-            onClick={() => setSelectedTab('lectures')}
-          >
-            Lecture Notes
-          </Button>
-          <Button
-            variant={selectedTab === 'readings' ? 'default' : 'outline'}
-            onClick={() => setSelectedTab('readings')}
-          >
-            Reading Materials
-          </Button>
-          <Button
-            variant={selectedTab === 'assignments' ? 'default' : 'outline'}
-            onClick={() => setSelectedTab('assignments')}
-          >
-            Assignments
-          </Button>
-        </div>
+  // Render the appropriate content based on the selected tab
+  return (
+    <div className="flex flex-col space-y-6">
+      {/* Tab navigation */}
+      <div className="flex border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+        <button
+          onClick={() => setSelectedTab('syllabus')}
+          className={`px-4 py-2 border-b-2 font-medium text-sm ${
+            selectedTab === 'syllabus'
+              ? 'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+          }`}
+        >
+          Syllabus
+        </button>
+        <button
+          onClick={() => setSelectedTab('lectures')}
+          className={`px-4 py-2 border-b-2 font-medium text-sm ${
+            selectedTab === 'lectures'
+              ? 'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+          }`}
+        >
+          Lectures
+        </button>
+        <button
+          onClick={() => setSelectedTab('readings')}
+          className={`px-4 py-2 border-b-2 font-medium text-sm ${
+            selectedTab === 'readings'
+              ? 'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+          }`}
+        >
+          Readings
+        </button>
+        <button
+          onClick={() => setSelectedTab('assignments')}
+          className={`px-4 py-2 border-b-2 font-medium text-sm ${
+            selectedTab === 'assignments'
+              ? 'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+          }`}
+        >
+          Assignments
+        </button>
+        <button
+          onClick={() => setSelectedTab('notes')}
+          className={`px-4 py-2 border-b-2 font-medium text-sm ${
+            selectedTab === 'notes'
+              ? 'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+          }`}
+        >
+          Notes
+        </button>
+      </div>
 
-        {/* Syllabus Section */}
+      {/* Content area */}
+      <div className="flex-1 p-4">
+        {/* Syllabus Tab */}
         {selectedTab === 'syllabus' && (
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
-            <h2 className="text-xl font-semibold mb-4">{subject.courseMaterials.syllabus.title}</h2>
-            <p className="mb-4 text-gray-700 dark:text-gray-300">{subject.courseMaterials.syllabus.content}</p>
-            
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-medium text-lg">Course Schedule</h3>
-              <Button 
-                size="sm" 
-                variant="outline"
-                className="flex items-center gap-1"
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold">Course Syllabus</h2>
+              <Button
                 onClick={() => setAddUnitDialogOpen(true)}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
               >
-                <span>Add Unit</span>
-                <span className="text-lg">+</span>
+                Add Unit
               </Button>
             </div>
-
-            <div className="space-y-4">
-              {subject.courseMaterials.syllabus.sections.map((section, sectionIndex) => (
-                <div key={sectionIndex} className="border border-gray-200 dark:border-gray-700 rounded-md overflow-hidden">
-                  {/* Unit Header */}
-                  <div className="p-3 bg-gray-50 dark:bg-gray-700 flex justify-between items-center">
-                    <div className="font-medium">{section.title}</div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-500 dark:text-gray-400">Weeks {section.weeks}</span>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="h-7 w-7 p-0"
-                        onClick={() => {
-                          setSelectedUnitIndex(sectionIndex);
-                          setEditUnitDialogOpen(true);
-                        }}
-                      >
-                        ✏️
-                      </Button>
+            
+            {/* Units, Chapters, and Subtopics */}
+            {workingSubject.courseMaterials.syllabus && workingSubject.courseMaterials.syllabus.sections && workingSubject.courseMaterials.syllabus.sections.length > 0 ? (
+              <div className="space-y-6">
+                {workingSubject.courseMaterials.syllabus.sections.map((unit) => (
+                  <div key={unit.id} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                    <div className="bg-gray-50 dark:bg-gray-800 px-4 py-3 flex justify-between items-center">
+                      <h3 className="font-medium text-lg">{unit.title}</h3>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="ghost"
+                          className="h-8 w-8 p-0"
+                          onClick={() => {
+                            setSelectedUnit(unit);
+                            setEditUnitDialogOpen(true);
+                          }}
+                        >
+                          ✏️
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          className="h-8 w-8 p-0 text-red-500"
+                          onClick={() => onDeleteUnit(unit.id)}
+                        >
+                          🗑️
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          onClick={() => {
+                            setAddChapterDialogOpen(true);
+                            setSelectedChapterData({ unitId: unit.id });
+                          }}
+                        >
+                          + Chapter
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                  
-                  {/* Chapters */}
-                  <div className="p-3 space-y-3">
-                    {section.chapters && section.chapters.map((chapter, chapterIndex) => (
-                      <div key={chapterIndex} className="ml-4">
-                        <details className="cursor-pointer group">
-                          <summary className="font-medium text-sm flex items-center justify-between py-1">
-                            <span>{chapter.title}</span>
-                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button 
-                                className="text-xs text-blue-600 dark:text-blue-400"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  setSelectedUnitIndex(sectionIndex);
-                                  setSelectedChapterData({ unitIndex: sectionIndex, chapterIndex });
-                                  setEditChapterDialogOpen(true);
-                                }}
-                              >
-                                Edit
-                              </button>
-                            </div>
-                          </summary>
-                          <ul className="mt-2 space-y-1 ml-6 text-sm text-gray-600 dark:text-gray-300">
-                            {chapter.subtopics && chapter.subtopics.map((subtopic, subtopicIndex) => (
-                              <li key={subtopicIndex} className="flex items-center justify-between group/item">
-                                <span>• {subtopic}</span>
-                                <button 
-                                  className="text-xs text-blue-600 dark:text-blue-400 opacity-0 group-hover/item:opacity-100 transition-opacity"
+                    
+                    {/* Chapters */}
+                    {unit.chapters && unit.chapters.length > 0 ? (
+                      <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                        {unit.chapters.map((chapter) => (
+                          <div key={chapter.id} className="px-4 py-3">
+                            <div className="flex justify-between items-center mb-2">
+                              <h4 className="font-medium">{chapter.title}</h4>
+                              <div className="flex space-x-2">
+                                <Button
+                                  variant="ghost"
+                                  className="h-7 w-7 p-0"
                                   onClick={() => {
-                                    setSelectedUnitIndex(sectionIndex);
-                                    setSelectedSubtopicData({ unitIndex : sectionIndex, chapterIndex, subtopicIndex });
-                                    setEditSubtopicDialogOpen(true);
+                                    setSelectedChapterData({
+                                      unitId: unit.id,
+                                      chapterId: chapter.id,
+                                      chapter
+                                    });
+                                    setEditChapterDialogOpen(true);
                                   }}
                                 >
-                                  Edit
-                                </button>
-                              </li>
-                            ))}
-                            <li className="mt-2">
-                              <button 
-                                className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1"
-                                onClick={() => {
-                                  setSelectedUnitIndex(sectionIndex);
-                                  setAddChapterDialogOpen(true);
-                                }}
-                              >
-                                <span>+ Add Subtopic</span>
-                              </button>
-                            </li>
-                          </ul>
-                        </details>
+                                  ✏️
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  className="h-7 w-7 p-0 text-red-500"
+                                  onClick={() => onDeleteChapter(unit.id, chapter.id)}
+                                >
+                                  🗑️
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setAddSubtopicDialogOpen(true);
+                                    setSelectedSubtopicData({
+                                      unitId: unit.id,
+                                      chapterId: chapter.id
+                                    });
+                                  }}
+                                >
+                                  + Subtopic
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            {/* Subtopics */}
+                            {chapter.subtopics && chapter.subtopics.length > 0 ? (
+                              <ul className="pl-6 space-y-2">
+                                {chapter.subtopics.map((subtopic) => (
+                                  <li key={subtopic.id} className="flex justify-between items-center">
+                                    <span>{subtopic.title}</span>
+                                    <div className="flex space-x-1">
+                                      <Button
+                                        variant="ghost"
+                                        className="h-6 w-6 p-0"
+                                        onClick={() => {
+                                          setSelectedSubtopicData({
+                                            unitId: unit.id,
+                                            chapterId: chapter.id,
+                                            subtopicId: subtopic.id,
+                                            subtopic
+                                          });
+                                          setEditSubtopicDialogOpen(true);
+                                        }}
+                                      >
+                                        ✏️
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        className="h-6 w-6 p-0 text-red-500"
+                                        onClick={() => onDeleteSubtopic(unit.id, chapter.id, subtopic.id)}
+                                      >
+                                        🗑️
+                                      </Button>
+                                    </div>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p className="text-sm text-gray-500 dark:text-gray-400 pl-6">
+                                No subtopics added yet.
+                              </p>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                    <div className="ml-4 mt-2">
-                      <button 
-                        className="text-sm text-blue-600 dark:text-blue-400 flex items-center gap-1"
-                        onClick={() => {
-                          setSelectedUnitIndex(sectionIndex);
-                          setAddChapterDialogOpen(true);
-                        }}
-                      >
-                        <span>+ Add Chapter</span>
-                      </button>
-                    </div>
+                    ) : (
+                      <div className="px-4 py-3 text-gray-500 dark:text-gray-400">
+                        No chapters added to this unit yet.
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-10 text-gray-500 dark:text-gray-400">
+                No syllabus content added yet. Click "Add Unit" to get started.
+              </div>
+            )}
           </div>
         )}
 
-        {/* Lectures Section */}
+        {/* Lectures Tab */}
         {selectedTab === 'lectures' && (
-          <div>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Lecture Notes</h2>
-              <Button 
-                size="sm" 
-                variant="outline" 
-                className="flex items-center gap-1"
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold">Lectures</h2>
+              <Button
                 onClick={() => setAddLectureDialogOpen(true)}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
               >
-                <span>Add Lecture</span>
-                <span className="text-lg">+</span>
+                Add Lecture
               </Button>
             </div>
             
-            {subject.courseMaterials.lectures && subject.courseMaterials.lectures.length > 0 ? (
-              <div className="space-y-4">
-                {subject.courseMaterials.lectures.map((lecture) => renderLectureCard(lecture))}
+            {workingSubject.courseMaterials.lectures && workingSubject.courseMaterials.lectures.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {workingSubject.courseMaterials.lectures.map(lecture => renderLectureCard(lecture))}
               </div>
             ) : (
-              <div className="bg-white dark:bg-gray-800 p-8 rounded-lg border border-gray-200 dark:border-gray-700 text-center">
-                <p className="text-gray-500 dark:text-gray-400">No lectures added yet.</p>
-                <Button 
-                  className="mt-4"
-                  onClick={() => setAddLectureDialogOpen(true)}
-                >
-                  Add Your First Lecture
-                </Button>
+              <div className="text-center py-10 text-gray-500 dark:text-gray-400">
+                No lectures added yet. Click "Add Lecture" to get started.
               </div>
             )}
           </div>
         )}
 
-        {/* Readings Section */}
+        {/* Readings Tab */}
         {selectedTab === 'readings' && (
-          <div>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Reading Materials</h2>
-              <Button 
-                size="sm" 
-                variant="outline" 
-                className="flex items-center gap-1"
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold">Reading Materials</h2>
+              <Button
                 onClick={() => setAddReadingDialogOpen(true)}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
               >
-                <span>Add Reading</span>
-                <span className="text-lg">+</span>
+                Add Reading
               </Button>
             </div>
             
-            {subject.courseMaterials.readings && subject.courseMaterials.readings.length > 0 ? (
-              <div className="space-y-4">
-                {subject.courseMaterials.readings.map((reading) => renderReadingCard(reading))}
+            {workingSubject.courseMaterials.readings && workingSubject.courseMaterials.readings.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {workingSubject.courseMaterials.readings.map(reading => renderReadingCard(reading))}
               </div>
             ) : (
-              <div className="bg-white dark:bg-gray-800 p-8 rounded-lg border border-gray-200 dark:border-gray-700 text-center">
-                <p className="text-gray-500 dark:text-gray-400">No reading materials added yet.</p>
-                <Button 
-                  className="mt-4"
-                  onClick={() => setAddReadingDialogOpen(true)}
-                >
-                  Add Your First Reading Material
-                </Button>
+              <div className="text-center py-10 text-gray-500 dark:text-gray-400">
+                No reading materials added yet. Click "Add Reading" to get started.
               </div>
             )}
           </div>
         )}
 
-        {/* Assignments Section */}
+        {/* Assignments Tab */}
         {selectedTab === 'assignments' && (
-          <div>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Assignments</h2>
-              <Button 
-                variant="outline" 
-                className="flex items-center gap-1"
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold">Assignments</h2>
+              <Button
                 onClick={() => setAddAssignmentDialogOpen(true)}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
               >
-                <span>Add Assignment</span>
-                <span>+</span>
+                Add Assignment
               </Button>
             </div>
             
-            {subject.courseMaterials.assignments && subject.courseMaterials.assignments.length > 0 ? (
-              <div className="grid gap-4">
-                {subject.courseMaterials.assignments.map((assignment) => renderAssignmentCard(assignment))}
+            {workingSubject.courseMaterials.assignments && workingSubject.courseMaterials.assignments.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {workingSubject.courseMaterials.assignments.map(assignment => renderAssignmentCard(assignment))}
               </div>
             ) : (
-              <div className="bg-gray-50 dark:bg-gray-900 p-6 text-center border border-gray-200 dark:border-gray-700 rounded-md">
-                <p className="text-gray-500 dark:text-gray-400 mb-4">No assignments added yet</p>
-                <Button 
-                  className="mt-4"
-                  onClick={() => setAddAssignmentDialogOpen(true)}
-                >
-                  Add Your First Assignment
-                </Button>
+              <div className="text-center py-10 text-gray-500 dark:text-gray-400">
+                No assignments added yet. Click "Add Assignment" to get started.
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Notes Tab */}
+        {selectedTab === 'notes' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold">Notes</h2>
+              <Button
+                onClick={() => setAddNoteDialogOpen(true)}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              >
+                Add Note
+              </Button>
+            </div>
+            
+            {workingSubject.notes && workingSubject.notes.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {workingSubject.notes.map(note => renderNoteCard(note))}
+              </div>
+            ) : (
+              <div className="text-center py-10 text-gray-500 dark:text-gray-400">
+                No notes added yet. Click "Add Note" to get started.
               </div>
             )}
           </div>
         )}
       </div>
 
-      {/* Notes Tab */}
-      {selectedTab === 'notes' && (
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">Notes</h2>
-            <Button 
-              variant="outline" 
-              className="flex items-center gap-1"
-              onClick={() => setAddNoteDialogOpen(true)}
-            >
-              <span>Add Note</span>
-              <span>+</span>
-            </Button>
-          </div>
-          
-          {subject.notes && subject.notes.length > 0 ? (
-            <div className="grid gap-4">
-              {subject.notes.map((note) => (
-                <div 
-                  key={note.id} 
-                  className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4"
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="text-lg font-medium">{note.title}</h3>
-                    <div className="flex space-x-2">
-                      <Button 
-                        variant="ghost" 
-                        className="h-7 w-7 p-0"
-                        onClick={() => {
-                          setSelectedNoteForEdit(note);
-                          setEditNoteDialogOpen(true);
-                        }}
-                      >
-                        ✏️
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        className="h-7 w-7 p-0 text-red-500"
-                        onClick={() => handleDeleteNote(note.id)}
-                      >
-                        🗑️
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        className={`h-7 w-7 p-0 ${isFavorited('note', note.id) ? 'text-yellow-500' : 'text-gray-400'}`}
-                        onClick={() => handleToggleFavorite('note', note.id)}
-                      >
-                        ⭐
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                    {note.date && new Date(note.date).toLocaleDateString()}
-                  </div>
-                  <p className="text-gray-700 dark:text-gray-300">{note.content}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-gray-50 dark:bg-gray-900 p-6 text-center border border-gray-200 dark:border-gray-700 rounded-md">
-              <p className="text-gray-500 dark:text-gray-400 mb-4">No notes added yet</p>
-              <Button 
-                className="mt-4"
-                onClick={() => setAddNoteDialogOpen(true)}
-              >
-                Add Your First Note
-              </Button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Syllabus Dialogs */}
+      {/* Dialogs */}
+      {/* Unit Dialogs */}
       <AddUnitDialog 
         isOpen={addUnitDialogOpen} 
-        onClose={() => setAddUnitDialogOpen(false)} 
-        onAddUnit={handleAddUnit} 
+        onClose={() => setAddUnitDialogOpen(false)}
+        onAddUnit={onAddUnit}
       />
       
       <EditUnitDialog 
         isOpen={editUnitDialogOpen} 
-        onClose={() => setEditUnitDialogOpen(false)} 
-        unit={selectedUnitIndex !== null ? subject.courseMaterials.syllabus.sections[selectedUnitIndex] : null}
-        onUpdateUnit={handleUpdateUnit} 
+        onClose={() => setEditUnitDialogOpen(false)}
+        unit={selectedUnit}
+        onUpdateUnit={(updatedUnit) => {
+          if (selectedUnit) {
+            onUpdateUnit({...selectedUnit, ...updatedUnit});
+          }
+        }}
       />
       
+      {/* Chapter Dialogs */}
       <AddChapterDialog 
         isOpen={addChapterDialogOpen} 
         onClose={() => setAddChapterDialogOpen(false)} 
-        onAddChapter={handleAddChapter} 
+        onAddChapter={onAddChapter}
       />
       
       <EditChapterDialog 
         isOpen={editChapterDialogOpen} 
-        onClose={() => setEditChapterDialogOpen(false)} 
-        chapter={selectedUnitIndex !== null && selectedChapterData !== null && subject.courseMaterials.syllabus.sections[selectedUnitIndex].chapters ? 
-          subject.courseMaterials.syllabus.sections[selectedUnitIndex].chapters[selectedChapterData.chapterIndex] : null}
-        onUpdateChapter={handleUpdateChapter} 
+        onClose={() => setEditChapterDialogOpen(false)}
+        chapter={selectedChapterData?.chapter}
+        onUpdateChapter={(updatedChapter) => {
+          if (selectedChapterData?.chapter) {
+            onUpdateChapter({...selectedChapterData.chapter, ...updatedChapter});
+          }
+        }}
       />
       
+      {/* Subtopic Dialogs */}
       <AddSubtopicDialog 
         isOpen={addSubtopicDialogOpen} 
-        onClose={() => setAddSubtopicDialogOpen(false)} 
-        onAddSubtopic={handleAddSubtopic} 
+        onClose={() => setAddSubtopicDialogOpen(false)}
+        onAddSubtopic={onAddSubtopic}
       />
       
       <EditSubtopicDialog 
         isOpen={editSubtopicDialogOpen} 
-        onClose={() => setEditSubtopicDialogOpen(false)} 
-        subtopic={
-          selectedUnitIndex !== null && 
-          selectedChapterData !== null && 
-          selectedSubtopicData !== null && 
-          subject.courseMaterials.syllabus.sections[selectedUnitIndex].chapters && 
-          subject.courseMaterials.syllabus.sections[selectedUnitIndex].chapters[selectedChapterData.chapterIndex].subtopics ? 
-            subject.courseMaterials.syllabus.sections[selectedUnitIndex].chapters[selectedChapterData.chapterIndex].subtopics[selectedSubtopicData.subtopicIndex] : null
-        }
-        onUpdateSubtopic={handleUpdateSubtopic} 
+        onClose={() => setEditSubtopicDialogOpen(false)}
+        subtopic={selectedSubtopicData?.subtopic}
+        onUpdateSubtopic={(updatedSubtopic) => {
+          if (selectedSubtopicData?.subtopic) {
+            onUpdateSubtopic({...selectedSubtopicData.subtopic, ...updatedSubtopic});
+          }
+        }}
       />
       
       {/* Lecture Dialogs */}
-      <AddLectureDialog
-        isOpen={addLectureDialogOpen}
+      <AddLectureDialog 
+        isOpen={addLectureDialogOpen} 
         onClose={() => setAddLectureDialogOpen(false)}
-        onAddLecture={handleAddLecture}
+        onAddLecture={onAddLecture}
       />
       
-      <EditLectureDialog
-        isOpen={editLectureDialogOpen}
+      <EditLectureDialog 
+        isOpen={editLectureDialogOpen} 
         onClose={() => setEditLectureDialogOpen(false)}
-        lecture={selectedLecture !== null && subject.courseMaterials.lectures ? 
-          subject.courseMaterials.lectures.find(l => l.id === selectedLecture.id) : null}
-        onUpdateLecture={handleUpdateLecture}
+        lecture={selectedLecture}
+        onUpdateLecture={(updatedLecture) => {
+          if (selectedLecture) {
+            onUpdateLecture({...selectedLecture, ...updatedLecture});
+          }
+        }}
       />
       
       {/* Reading Dialogs */}
-      <AddReadingDialog
-        isOpen={addReadingDialogOpen}
+      <AddReadingDialog 
+        isOpen={addReadingDialogOpen} 
         onClose={() => setAddReadingDialogOpen(false)}
-        onAddReading={handleAddReading}
+        onAddReading={onAddReading}
       />
       
-      <EditReadingDialog
-        isOpen={editReadingDialogOpen}
+      <EditReadingDialog 
+        isOpen={editReadingDialogOpen} 
         onClose={() => setEditReadingDialogOpen(false)}
-        reading={selectedReading !== null && subject.courseMaterials.readings ? 
-          subject.courseMaterials.readings.find(r => r.id === selectedReading.id) : null}
-        onUpdateReading={handleUpdateReading}
+        reading={selectedReading}
+        onUpdateReading={(updatedReading) => {
+          if (selectedReading) {
+            onUpdateReading({...selectedReading, ...updatedReading});
+          }
+        }}
       />
       
       {/* Assignment Dialogs */}
-      <AddAssignmentDialog
-        isOpen={addAssignmentDialogOpen}
+      <AddAssignmentDialog 
+        isOpen={addAssignmentDialogOpen} 
         onClose={() => setAddAssignmentDialogOpen(false)}
-        onAddAssignment={handleAddAssignment}
+        onAddAssignment={onAddAssignment}
       />
       
-      <EditAssignmentDialog
-        isOpen={editAssignmentDialogOpen}
+      <EditAssignmentDialog 
+        isOpen={editAssignmentDialogOpen} 
         onClose={() => setEditAssignmentDialogOpen(false)}
-        assignment={selectedAssignment !== null && subject.courseMaterials.assignments ? 
-          subject.courseMaterials.assignments.find(a => a.id === selectedAssignment.id) : null}
-        onUpdateAssignment={handleUpdateAssignment}
+        assignment={selectedAssignment}
+        onUpdateAssignment={(updatedAssignment) => {
+          if (selectedAssignment) {
+            onUpdateAssignment({...selectedAssignment, ...updatedAssignment});
+          }
+        }}
       />
       
       {/* Note Dialogs */}
-      <AddNoteDialog
-        isOpen={addNoteDialogOpen}
+      <AddNoteDialog 
+        isOpen={addNoteDialogOpen} 
         onClose={() => setAddNoteDialogOpen(false)}
-        onAddNote={handleAddNote}
+        onAddNote={onAddNote}
       />
       
-      <EditNoteDialog
-        isOpen={editNoteDialogOpen}
+      <EditNoteDialog 
+        isOpen={editNoteDialogOpen} 
         onClose={() => setEditNoteDialogOpen(false)}
-        note={selectedNoteForEdit !== null && subject.notes ? subject.notes.find(n => n.id === selectedNoteForEdit.id) : null}
-        onUpdateNote={handleUpdateNote}
+        note={selectedNoteForEdit}
+        onUpdateNote={(updatedNote) => {
+          if (selectedNoteForEdit) {
+            onUpdateNote({...selectedNoteForEdit, ...updatedNote});
+          }
+        }}
       />
     </div>
   );
