@@ -35,7 +35,7 @@ const Todo = ({ subjects }) => {
           allAssignments.push(...subjectAssignments);
         }
       });
-      
+
       // Sort by due date (closest first)
       allAssignments.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
       
@@ -152,20 +152,20 @@ const Todo = ({ subjects }) => {
           >
             Completed
           </Button>
-        </div>
-        
+      </div>
+
         {filteredAssignments.length === 0 ? (
           <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 text-center">
             <p className="text-gray-500 dark:text-gray-400">No assignments found</p>
-          </div>
+        </div>
         ) : (
-          <div className="grid gap-4">
+      <div className="grid gap-4">
             {filteredAssignments.map(assignment => {
               const dueStatus = getDueStatus(assignment.dueDate);
               
               return (
                 <div 
-                  key={assignment.id}
+              key={assignment.id}
                   className={`p-4 rounded-lg border ${
                     assignment.isCompleted 
                       ? 'bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700' 
@@ -186,16 +186,16 @@ const Todo = ({ subjects }) => {
                     
                     <div className="flex-1">
                       <div className="flex justify-between items-start">
-                        <div>
+                <div>
                           <h3 className={`font-medium ${assignment.isCompleted ? 'line-through text-gray-500 dark:text-gray-400' : ''}`}>
-                            {assignment.title}
+                    {assignment.title}
                           </h3>
                           <p className="text-sm text-gray-500 dark:text-gray-400">
                             {assignment.subjectName}
                           </p>
-                        </div>
+                </div>
                         
-                        <Button
+                <Button 
                           variant="ghost"
                           size="icon"
                           onClick={() => handleToggleFavorite(assignment)}
@@ -216,16 +216,16 @@ const Todo = ({ subjects }) => {
                                 : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
                         }`}>
                           {assignment.isCompleted ? (
-                            <>
+                    <>
                               <CheckCircle2 className="mr-1 h-3 w-3" />
-                              Completed
-                            </>
+                      Completed
+                    </>
                           ) : dueStatus.status === 'overdue' ? (
                             <>
                               <AlertCircle className="mr-1 h-3 w-3" />
                               {dueStatus.label}
-                            </>
-                          ) : (
+                    </>
+                  ) : (
                             <>
                               <Clock className="mr-1 h-3 w-3" />
                               {dueStatus.label}
@@ -241,7 +241,7 @@ const Todo = ({ subjects }) => {
                           <div className="inline-flex items-center px-2 py-1 bg-purple-100 dark:bg-purple-900/30 rounded-full text-xs text-purple-800 dark:text-purple-400">
                             {assignment.points} points
                           </div>
-                        )}
+            )}
                       </div>
                     </div>
                   </div>

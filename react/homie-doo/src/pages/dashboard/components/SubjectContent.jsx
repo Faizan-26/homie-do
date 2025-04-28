@@ -187,6 +187,7 @@ const SubjectContent = ({ subject, updateSubject, favorites, toggleFavorite }) =
   
   const onAddUnit = async (newUnit) => {
     try {
+      console.log("Working Subject PIK", workingSubject);
       const updatedSubject = await handleAddUnit(workingSubject, newUnit);
       handleSyncWithParent(updatedSubject);
       toast.success(`Unit "${newUnit.title}" added successfully!`);

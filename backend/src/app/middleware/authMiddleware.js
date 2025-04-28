@@ -50,44 +50,44 @@ export const authenticateJWT = async (req, res, next) => {
     }
 };
 
-/**
- * Optional JWT authentication middleware
- * Validates token if present, but doesn't require it
- */
-export const optionalAuthJWT = async (req, res, next) => {
-    try {
-        const authHeader = req.headers.authorization;
+// /**
+//  * Optional JWT authentication middleware
+//  * Validates token if present, but doesn't require it
+//  */
+// export const optionalAuthJWT = async (req, res, next) => {
+//     try {
+//         const authHeader = req.headers.authorization;
 
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            req.user = null;
-            return next();
-        }
+//         if (!authHeader || !authHeader.startsWith('Bearer ')) {
+//             req.user = null;
+//             return next();
+//         }
 
-        const token = authHeader.split(' ')[1];
+//         const token = authHeader.split(' ')[1];
 
-        if (!token) {
-            req.user = null;
-            return next();
-        }
+//         if (!token) {
+//             req.user = null;
+//             return next();
+//         }
 
-        // Verify token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+//         // Verify token
+//         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        // Check if user still exists
-        const user = await findUserById(decoded.id);
+//         // Check if user still exists
+//         const user = await findUserById(decoded.id);
 
-        if (user) {
-            req.user = {
-                id: decoded.id,
-                email: decoded.email
-            };
-        } else {
-            req.user = null;
-        }
+//         if (user) {
+//             req.user = {
+//                 id: decoded.id,
+//                 email: decoded.email
+//             };
+//         } else {
+//             req.user = null;
+//         }
 
-        next();
-    } catch (error) {
-        req.user = null;
-        next();
-    }
-}; 
+//         next();
+//     } catch (error) {
+//         req.user = null;
+//         next();
+//     }
+// }; 

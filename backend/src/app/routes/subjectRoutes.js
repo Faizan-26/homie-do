@@ -55,7 +55,7 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
     try {
-        
+
         const subject = await subjectService.deleteSubject(req.params.id, req.user.id);
         if (!subject) {
             return res.status(404).json({ error: 'Subject not found' });
@@ -69,8 +69,6 @@ router.delete('/:id', async (req, res) => {
 // Unit routes
 router.post('/:id/units', async (req, res) => { // id is subject id
     try {
-        
-        console.log("ADDING UNIT req.body", req.body);
         const unit = await subjectService.addUnit(req.params.id, req.user.id, req.body);
         res.status(201).json(unit);
     } catch (error) {

@@ -130,6 +130,9 @@ export const transformSubjectForBackend = (subject) => {
 // Unit operations with backend integration
 export const handleAddUnit = async (subject, unitData) => {
     try {
+        // get active subject
+        console.log("Unit Data PIK", unitData);
+        console.log("Subject Data PIK", subject);
         console.log("Subject received in handleAddUnit:", subject);
         console.log("Subject ID types:", {
             id: subject.id,
@@ -140,15 +143,6 @@ export const handleAddUnit = async (subject, unitData) => {
             _idType: typeof subject._id
         });
 
-        // Prepare the temporary unit object without an ID
-        // Backend will assign the proper ID
-        const tempUnit = {
-            title: unitData.title,
-            weeks: unitData.weeks || '',
-            chapters: []
-        };
-
-        // Transform for backend
         const backendData = {
             title: unitData.title,
             weeks: unitData.weeks || ''
@@ -161,20 +155,24 @@ export const handleAddUnit = async (subject, unitData) => {
         
         if (!subjectId) {
             console.error("Subject ID is undefined or null!");
-            toast.error("Cannot add unit - subject ID is missing");
+            toast.error("Cannot add unit - subject ID is missing. Please save the subject first.");
+            return subject;
+        }
+
+        // Ensure subjectId is not null or undefined before making the API call
+        if (subjectId === null || subjectId === 'null' || subjectId === undefined) {
+            console.error("Subject ID is null or invalid:", subjectId);
+            toast.error("Cannot add unit - invalid subject ID. Please save the subject first.");
             return subject;
         }
 
         // Add unit to backend - use _id instead of id for MongoDB
         const response = await subjectService.addUnit(subjectId, backendData);
         
-        // Get the backend-generated ID from the response
-        const newUnitWithId = response;
         console.log("Response from backend after unit creation:", response);
         
-        // Create the unit with the backend-generated ID
         const newUnit = {
-            id: newUnitWithId.id,  // Use the ID from backend
+            id: response.id,
             title: unitData.title,
             weeks: unitData.weeks || '',
             chapters: []
