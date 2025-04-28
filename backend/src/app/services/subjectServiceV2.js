@@ -168,8 +168,7 @@ export const deleteChapter = async (userId, subjectId, unitId, chapterId) => {
         const updatedSubject = await Subject.findOneAndUpdate(
             { _id: subjectId, user: userId },
             { $pull: { "courseMaterials.syllabus.units.$[unit].chapters": { _id: chapterId } } },
-            { arrayFilters: [{ "unit._id": unitId }] },
-            { new: true }
+            { arrayFilters: [{ "unit._id": unitId }], new: true }
         );
         if (!updatedSubject) {
             return { message: 'Subject or unit or chapter not found or not authorized' };
