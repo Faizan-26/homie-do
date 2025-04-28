@@ -7,6 +7,8 @@ const subjectSchema = new mongoose.Schema({
     required: [true, 'Subject name is required'],
     trim: true
   },
+  icon: { type: String, default: "📚" },
+  color: { type: String, default: "#FFFFF" }, // Default color set to white
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User', // Reference to the User model
@@ -33,6 +35,7 @@ const subjectSchema = new mongoose.Schema({
       title: { type: String },
       date: { type: Date, default: Date.now }, // Changed from String to Date
       content: { type: String },
+      isFavorite: { type: Boolean, default: false },
       attachments: [{
         // Removed explicit id field to use MongoDB's _id
         name: { type: String }, // name of the file
@@ -47,6 +50,7 @@ const subjectSchema = new mongoose.Schema({
       type: { type: String }, // TEXTBOOK, ARTICLE, VIDEO, etc.
       typeFieldOne: { type: String },
       typeFieldTwo: { type: String },
+      isFavorite: { type: Boolean, default: false },
       attachments: [{
         // Removed explicit id field to use MongoDB's _id
         name: { type: String }, // name of the file
@@ -77,9 +81,10 @@ const subjectSchema = new mongoose.Schema({
     title: { type: String },
     date: { type: Date, default: Date.now }, // Changed from String to Date
     content: { type: String },
-    tags: [{ type: String }]
+    tags: [{ type: String }],
+    isFavorite: { type: Boolean, default: false },
   }]
-}, { 
+}, {
   timestamps: true // This automatically manages createdAt and updatedAt
 });
 

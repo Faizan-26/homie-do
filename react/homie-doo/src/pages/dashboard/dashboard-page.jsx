@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Toaster, toast } from 'sonner';
+import { useAuth } from '../../context/AuthContext';
+import { SubjectModel } from '../../models/subjectModel';
+import { subjectService } from '../../services/subjectServiceV2';
 import Sidebar from './components/Sidebar';
 import DashboardContent from './components/DashboardContent';
-import { useAuth } from '../../context/AuthContext';
-import subjectService from '../../services/subjectService';
-import SubjectModel from '../../models/subjectModel';
 
 
 const DashboardPage = () => {
@@ -22,12 +22,10 @@ const DashboardPage = () => {
   });
   
   // State to track which documents are favorited
-  const [favorites, setFavorites] = useState(() => {
-    // Load favorites from localStorage
-    const savedFavorites = localStorage.getItem('favorites');
-    return savedFavorites ? JSON.parse(savedFavorites) : [];
-  });
+  const [favorites, setFavorites] = useState([]);
+  const [todo, setTodos] = useState([]);
   
+
   const [classesExpanded, setClassesExpanded] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -54,8 +52,8 @@ const DashboardPage = () => {
             name: subject.name,
             description: subject.description || '',
             instructor: subject.instructor || '',
-            icon: '📚', // Default icon
-            color: getRandomSubjectColor(), // Function to generate a random color
+            icon: subject.icon,
+            color: subject.color,
             courseMaterials: {
               syllabus: {
                 id: subject._id, // Use subject ID as syllabus ID
@@ -115,6 +113,33 @@ const DashboardPage = () => {
         });
         
         setSubjects(processedSubjects);
+        // load favorites from processed subjects where isFavorite is true for each type even if it assignment, lecture or reading  if yes then add to favorites array
+        const allFavorites = processedSubjects.reduce((acc, subject) => {
+          const subjectFavorites = [
+            ...subject.courseMaterials.assignments.filter(assignment => assignment.isFavorite).map(assignment => `assignment_${subject.id}_${assignment.id}`),
+            ...subject.courseMaterials.lectures.filter(lecture => lecture.isFavorite).map(lecture => `lecture_${subject.id}_${lecture.id}`),
+            ...subject.courseMaterials.readings.filter(reading => reading.isFavorite).map(reading => `reading_${subject.id}_${reading.id}`)
+          ];
+          return [...acc, ...subjectFavorites];
+        }, []);
+        setFavorites(allFavorites);
+        // get all assignments from all subjects and set to todos
+        const allAssignments = processedSubjects.reduce((acc, subject) => {
+          const subjectAssignments = subject.courseMaterials.assignments.map(assignment => ({
+            id: assignment.id,
+            title: assignment.title,
+            dueDate: assignment.dueDate,
+            points: assignment.points,
+            instructions: assignment.instructions,
+            isCompleted: assignment.isCompleted,
+            isFavorite: assignment.isFavorite,
+            attachments: assignment.attachments || [],
+            subjectId: subject.id
+          }));
+          return [...acc, ...subjectAssignments];
+        }
+        , []);
+        setTodos(allAssignments);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -122,15 +147,10 @@ const DashboardPage = () => {
         setLoading(false);
       }
     };
-    
     fetchData();
   }, []);
   
-  // Save favorites to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('favorites', JSON.stringify(favorites));
-  }, [favorites]);
-  
+ 
   const handleResize = () => {
     const mobile = window.innerWidth < 768;
     setIsMobile(mobile);
@@ -204,6 +224,8 @@ const DashboardPage = () => {
       subjectModel.name = newSubject.name;
       subjectModel.courseMaterials.syllabus.title = `${newSubject.name} Syllabus`;
       subjectModel.courseMaterials.syllabus.content = newSubject.description || '';
+      subjectModel.icon = newSubject.icon || '📚';
+      subjectModel.color = newSubject.color || getRandomSubjectColor();
       
       // Create subject using our service
       const createdSubject = await subjectService.createSubject(subjectModel.toBackend());
@@ -374,7 +396,7 @@ const DashboardPage = () => {
     ];
     return colors[Math.floor(Math.random() * colors.length)];
   };
-  
+
   return (
     <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
       {loading && (
