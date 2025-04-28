@@ -239,3 +239,171 @@ export const deleteLecture = async (userId, subjectId, lectureId) => {
     }
 }
 
+// add reading to a subject by id-> subjectId/reading
+// expect readingData: { title: "Reading 1", type: "TEXTBOOK", typeFieldOne: "Author", typeFieldTwo: "Publisher", attachments: [] } attachments should be an array of objects with id, name, type, size, url
+export const addReading = async (userId, subjectId, readingData) => {
+    try {
+        const updatedSubject = await Subject.findOneAndUpdate(
+            { _id: subjectId, user: userId },
+            { $push: { "courseMaterials.readings": readingData } },
+            { new: true }
+        );
+        if (!updatedSubject) {
+            return { message: 'Subject not found or not authorized' };
+        }
+        return updatedSubject;
+    } catch (error) {
+        console.error('Error adding reading:', error);
+        return { message: error.message };
+    }
+}
+
+// edit reading of a subject by id-> subjectId/reading/readingId
+// expect readingData: { title: "Reading 1", type: "TEXTBOOK", typeFieldOne: "Author", typeFieldTwo: "Publisher", attachments: [] } attachments should be an array of objects with id, name, type, size, url
+export const editReading = async (userId, subjectId, readingId, readingData) => {
+    try {
+        const updatedSubject = await Subject.findOneAndUpdate(
+            { _id: subjectId, user: userId, "courseMaterials.readings._id": readingId },
+            { $set: { "courseMaterials.readings.$": readingData } },
+            { new: true }
+        );
+        if (!updatedSubject) {
+            return { message: 'Subject or reading not found or not authorized' };
+        }
+        return updatedSubject;
+    } catch (error) {
+        console.error('Error editing reading:', error);
+        return { message: error.message };
+    }
+}
+
+// delete reading of a subject by id-> subjectId/reading/readingId
+export const deleteReading = async (userId, subjectId, readingId) => {
+    try {
+        const updatedSubject = await Subject.findOneAndUpdate(
+            { _id: subjectId, user: userId },
+            { $pull: { "courseMaterials.readings": { _id: readingId } } },
+            { new: true }
+        );
+        if (!updatedSubject) {
+            return { message: 'Subject or reading not found or not authorized' };
+        }
+        return updatedSubject;
+    } catch (error) {
+        console.error('Error deleting reading:', error);
+        return { message: error.message };
+    }
+}
+
+// add assignment to a subject by id-> subjectId/assignment
+// expect assignmentData: { title: "Assignment 1", dueDate: "2023-10-01", points: 10, instructions: "Assignment instructions", isCompleted: false, isFavorite: false, attachments: [] }
+export const addAssignment = async (userId, subjectId, assignmentData) => {
+    try {
+        const updatedSubject = await Subject.findOneAndUpdate(
+            { _id: subjectId, user: userId },
+            { $push: { "courseMaterials.assignments": assignmentData } },
+            { new: true }
+        );
+        if (!updatedSubject) {
+            return { message: 'Subject not found or not authorized' };
+        }
+        return updatedSubject;
+    } catch (error) {
+        console.error('Error adding assignment:', error);
+        return { message: error.message };
+    }
+}
+
+// edit assignment of a subject by id-> subjectId/assignment/assignmentId
+// expect assignmentData: { title: "Assignment 1", dueDate: "2023-10-01", points: 10, instructions: "Assignment instructions", isCompleted: false, isFavorite: false, attachments: [] }
+export const editAssignment = async (userId, subjectId, assignmentId, assignmentData) => {
+    try {
+        const updatedSubject = await Subject.findOneAndUpdate(
+            { _id: subjectId, user: userId, "courseMaterials.assignments._id": assignmentId },
+            { $set: { "courseMaterials.assignments.$": assignmentData } },
+            { new: true }
+        );
+        if (!updatedSubject) {
+            return { message: 'Subject or assignment not found or not authorized' };
+        }
+        return updatedSubject;
+    } catch (error) {
+        console.error('Error editing assignment:', error);
+        return { message: error.message };
+    }
+}
+
+// delete assignment of a subject by id-> subjectId/assignment/assignmentId
+export const deleteAssignment = async (userId, subjectId, assignmentId) => {
+    try {
+        const updatedSubject = await Subject.findOneAndUpdate(
+            { _id: subjectId, user: userId },
+            { $pull: { "courseMaterials.assignments": { _id: assignmentId } } },
+            { new: true }
+        );
+        if (!updatedSubject) {
+            return { message: 'Subject or assignment not found or not authorized' };
+        }
+        return updatedSubject;
+    } catch (error) {
+        console.error('Error deleting assignment:', error);
+        return { message: error.message };
+    }
+}
+
+// add note to a subject by id-> subjectId/note
+// expect noteData: { title: "Note 1", date: "2023-10-01", content: "Note content", tags: [] }
+export const addNote = async (userId, subjectId, noteData) => {
+    try {
+        const updatedSubject = await Subject.findOneAndUpdate(
+            { _id: subjectId, user: userId },
+            { $push: { "notes": noteData } },
+            { new: true }
+        );
+        if (!updatedSubject) {
+            return { message: 'Subject not found or not authorized' };
+        }
+        return updatedSubject;
+    } catch (error) {
+        console.error('Error adding note:', error);
+        return { message: error.message };
+    }
+}
+
+// edit note of a subject by id-> subjectId/note/noteId
+// expect noteData: { title: "Note 1", date: "2023-10-01", content: "Note content", tags: [] }
+export const editNote = async (userId, subjectId, noteId, noteData) => {
+    try {
+        const updatedSubject = await Subject.findOneAndUpdate(
+            { _id: subjectId, user: userId, "notes._id": noteId },
+            { $set: { "notes.$": noteData } },
+            { new: true }
+        );
+        if (!updatedSubject) {
+            return { message: 'Subject or note not found or not authorized' };
+        }
+        return updatedSubject;
+    } catch (error) {
+        console.error('Error editing note:', error);
+        return { message: error.message };
+    }
+}
+
+// delete note of a subject by id-> subjectId/note/noteId
+export const deleteNote = async (userId, subjectId, noteId) => {
+    try {
+        const updatedSubject = await Subject.findOneAndUpdate(
+            { _id: subjectId, user: userId },
+            { $pull: { "notes": { _id: noteId } } },
+            { new: true }
+        );
+        if (!updatedSubject) {
+            return { message: 'Subject or note not found or not authorized' };
+        }
+        return updatedSubject;
+    } catch (error) {
+        console.error('Error deleting note:', error);
+        return { message: error.message };
+    }
+}
+

@@ -236,4 +236,201 @@ subjectRouterV2.delete('/:id/lecture/:lectureId', async (req, res) => {
     }
 });
 
+// add reading to a subject by id
+/*
+Reading DataStructure:
+{
+    title: "Reading 1",
+    type: "TEXTBOOK", // TEXTBOOK, ARTICLE, VIDEO, etc.
+    typeFieldOne: "Author",
+    typeFieldTwo: "Publisher",
+    attachments: [
+        {
+            id: "attachment1",
+            name: "file.pdf",
+            type: "pdf",
+            size: 123456,
+            url: "CLOUDINARY_URL"
+        }
+    ]
+}
+*/ 
+subjectRouterV2.post('/:id/reading', async (req, res) => {
+    try {
+        const subjectId = req.params.id;
+        const readingData = req.body; // contains title, type, typeFieldOne, typeFieldTwo and attachments
+        console.log('Adding reading to subject with ID:', subjectId);
+
+        const updatedSubject = await subjectService.addReading(req.user.id, subjectId, readingData);
+        console.log('Updated subject with new reading:', updatedSubject);
+
+        res.status(201).json(updatedSubject);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// edit reading of a subject by id-> subjectId/reading/readingId
+// expect readingData: { title: "Reading 1", type: "TEXTBOOK", typeFieldOne: "Author", typeFieldTwo: "Publisher", attachments: [] } 
+subjectRouterV2.put('/:id/reading/:readingId', async (req, res) => {
+    try {
+        const subjectId = req.params.id;
+        const readingId = req.params.readingId;
+        const readingData = req.body;
+        console.log('Editing reading of subject with ID:', subjectId);
+
+        const updatedSubject = await subjectService.editReading(req.user.id, subjectId, readingId, readingData);
+        console.log('Updated subject with edited reading:', updatedSubject);
+
+        res.status(200).json(updatedSubject);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// delete reading of a subject by id-> subjectId/reading/readingId
+subjectRouterV2.delete('/:id/reading/:readingId', async (req, res) => {
+    try {
+        const subjectId = req.params.id;
+        const readingId = req.params.readingId;
+        console.log('Deleting reading of subject with ID:', subjectId);
+
+        const updatedSubject = await subjectService.deleteReading(req.user.id, subjectId, readingId);
+        console.log('Updated subject after deleting reading:', updatedSubject);
+
+        res.status(200).json(updatedSubject);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// add assignment to a subject by id
+/*
+Assignment DataStructure:
+{
+    title: "Assignment 1",
+    dueDate: "2023-10-01", 
+    points: 10,
+    instructions: "Assignment instructions",
+    isCompleted: false,
+    isFavorite: false,
+    attachments: [
+        {
+            id: "attachment1",
+            name: "file.pdf",
+            type: "pdf",
+            size: 123456,
+            url: "CLOUDINARY_URL"
+        }
+    ]
+}
+*/ 
+subjectRouterV2.post('/:id/assignment', async (req, res) => {
+    try {
+        const subjectId = req.params.id;
+        const assignmentData = req.body;
+        console.log('Adding assignment to subject with ID:', subjectId);
+
+        const updatedSubject = await subjectService.addAssignment(req.user.id, subjectId, assignmentData);
+        console.log('Updated subject with new assignment:', updatedSubject);
+
+        res.status(201).json(updatedSubject);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// edit assignment of a subject by id-> subjectId/assignment/assignmentId
+// expect assignmentData: { title: "Assignment 1", dueDate: "2023-10-01", points: 10, instructions: "Assignment instructions", isCompleted: false, isFavorite: false, attachments: [] }
+subjectRouterV2.put('/:id/assignment/:assignmentId', async (req, res) => {
+    try {
+        const subjectId = req.params.id;
+        const assignmentId = req.params.assignmentId;
+        const assignmentData = req.body;
+        console.log('Editing assignment of subject with ID:', subjectId);
+
+        const updatedSubject = await subjectService.editAssignment(req.user.id, subjectId, assignmentId, assignmentData);
+        console.log('Updated subject with edited assignment:', updatedSubject);
+
+        res.status(200).json(updatedSubject);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// delete assignment of a subject by id-> subjectId/assignment/assignmentId
+subjectRouterV2.delete('/:id/assignment/:assignmentId', async (req, res) => {
+    try {
+        const subjectId = req.params.id;
+        const assignmentId = req.params.assignmentId;
+        console.log('Deleting assignment of subject with ID:', subjectId);
+
+        const updatedSubject = await subjectService.deleteAssignment(req.user.id, subjectId, assignmentId);
+        console.log('Updated subject after deleting assignment:', updatedSubject);
+
+        res.status(200).json(updatedSubject);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// add note to a subject by id
+/*
+Note DataStructure:
+{
+    title: "Note 1",
+    date: "2023-10-01",
+    content: "Note content",
+    tags: ["tag1", "tag2"]
+}
+*/ 
+subjectRouterV2.post('/:id/note', async (req, res) => {
+    try {
+        const subjectId = req.params.id;
+        const noteData = req.body;
+        console.log('Adding note to subject with ID:', subjectId);
+
+        const updatedSubject = await subjectService.addNote(req.user.id, subjectId, noteData);
+        console.log('Updated subject with new note:', updatedSubject);
+
+        res.status(201).json(updatedSubject);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// edit note of a subject by id-> subjectId/note/noteId
+// expect noteData: { title: "Note 1", date: "2023-10-01", content: "Note content", tags: ["tag1", "tag2"] }
+subjectRouterV2.put('/:id/note/:noteId', async (req, res) => {
+    try {
+        const subjectId = req.params.id;
+        const noteId = req.params.noteId;
+        const noteData = req.body;
+        console.log('Editing note of subject with ID:', subjectId);
+
+        const updatedSubject = await subjectService.editNote(req.user.id, subjectId, noteId, noteData);
+        console.log('Updated subject with edited note:', updatedSubject);
+
+        res.status(200).json(updatedSubject);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// delete note of a subject by id-> subjectId/note/noteId
+subjectRouterV2.delete('/:id/note/:noteId', async (req, res) => {
+    try {
+        const subjectId = req.params.id;
+        const noteId = req.params.noteId;
+        console.log('Deleting note of subject with ID:', subjectId);
+
+        const updatedSubject = await subjectService.deleteNote(req.user.id, subjectId, noteId);
+        console.log('Updated subject after deleting note:', updatedSubject);
+
+        res.status(200).json(updatedSubject);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 export default subjectRouterV2;
