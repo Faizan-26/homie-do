@@ -169,4 +169,71 @@ subjectRouterV2.delete('/:id/unit/:unitId/chapter/:chapterId', async (req, res) 
 });
 
 
+// add lecture to a subject by id
+/*
+Lecture DataStructure:
+{
+    title: "Lecture 1",
+    date: "2023-10-01",
+    content: "Lecture content goes here",
+    attachments: [
+        {
+            id: "attachment1",
+            name: "file.pdf",
+            type: "pdf",
+            size: 123456,
+            url: "CLOUDINARY_URL"
+        }
+    ]
+}
+*/ 
+subjectRouterV2.post('/:id/lecture', async (req, res) => {
+    try {
+        const subjectId = req.params.id;
+        const lectureData = req.body; // contains title, date, content and attachments
+        console.log('Adding lecture to subject with ID:', subjectId);
+
+        const updatedSubject = await subjectService.addLecture(req.user.id, subjectId, lectureData);
+        console.log('Updated subject with new lecture:', updatedSubject);
+
+        res.status(201).json(updatedSubject);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// edit lecture of a subject by id-> subjectId/lecture/lectureId
+// expect lectureData: { title: "Lecture 1", date: "2023-10-01", content: "Lecture content", attachments: [] } attachments should be an array of objects with id, name, type, size, url
+subjectRouterV2.put('/:id/lecture/:lectureId', async (req, res) => {
+    try {
+        const subjectId = req.params.id;
+        const lectureId = req.params.lectureId;
+        const lectureData = req.body; // contains title, date, content and attachments
+        console.log('Editing lecture of subject with ID:', subjectId);
+
+        const updatedSubject = await subjectService.editLecture(req.user.id, subjectId, lectureId, lectureData);
+        console.log('Updated subject with edited lecture:', updatedSubject);
+
+        res.status(200).json(updatedSubject);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// delete lecture of a subject by id-> subjectId/lecture/lectureId
+subjectRouterV2.delete('/:id/lecture/:lectureId', async (req, res) => {
+    try {
+        const subjectId = req.params.id;
+        const lectureId = req.params.lectureId;
+        console.log('Deleting lecture of subject with ID:', subjectId);
+
+        const updatedSubject = await subjectService.deleteLecture(req.user.id, subjectId, lectureId);
+        console.log('Updated subject after deleting lecture:', updatedSubject);
+
+        res.status(200).json(updatedSubject);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 export default subjectRouterV2;
