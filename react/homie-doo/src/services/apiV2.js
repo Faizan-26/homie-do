@@ -40,7 +40,6 @@ api.interceptors.response.use(
                     break;
                 default:
                     console.error('API error:', error.response.data);
-
                     console.error('Unexpected error occurred:', error);
             }
         } else if (error.request) {
@@ -55,54 +54,12 @@ api.interceptors.response.use(
 
 // Subject API endpoints 
 export const subjectApi = {
-
     // Subject CRUD
     getAll: () => api.get('/api/subjectsV2'),
     create: (data) => api.post('/api/subjectsV2', data),
-    delete: (id) => api.delete(`/api/subjectsV2/${id}`),    // Syllabus endpoint
-    updateSyllabus: (subjectId, syllabusData) => {
-        // Validate ID before making request
-        if (!subjectId || subjectId === 'null' || subjectId === null) {
-            return Promise.reject(new Error('Invalid subject ID for updating syllabus'));
-        }
-        return api.put(`/api/subjectsV2/${subjectId}/syllabus`, syllabusData);
-    },
+    delete: (id) => api.delete(`/api/subjectsV2/${id}`),
 
-    // Unit operations
-    addUnit: (subjectId, unitData) => {
-        // Validate subjectId before making request
-        if (!subjectId || subjectId === 'null' || subjectId === null) {
-            return Promise.reject(new Error('Invalid subject ID for adding unit'));
-        }
-        return api.post(`/api/subjectsV2/${subjectId}/unit`, unitData);
-    },
-    updateUnit: (subjectId, unitId, unitData) => {
-        // Validate IDs before making request
-        if (!subjectId || subjectId === 'null' || subjectId === null) {
-            return Promise.reject(new Error('Invalid subject ID for updating unit'));
-        }
-        if (!unitId || unitId === 'null' || unitId === null) {
-            return Promise.reject(new Error('Invalid unit ID for update operation'));
-        }
-        return api.put(`/api/subjectsV2/${subjectId}/unit/${unitId}`, unitData);
-    },
-    deleteUnit: (subjectId, unitId) => api.delete(`/api/subjectsV2/${subjectId}/unit/${unitId}`),    // Chapter operations
-    addChapter: (subjectId, unitId, chapterData) => {
-        // Validate IDs before making request
-        if (!subjectId || !unitId) {
-            return Promise.reject(new Error('Invalid IDs for adding chapter'));
-        }
-        return api.post(`/api/subjectsV2/${subjectId}/unit/${unitId}/chapter`, chapterData);
-    },
-    updateChapter: (subjectId, unitId, chapterId, chapterData) => {
-        // Validate IDs before making request
-        if (!subjectId || !unitId || !chapterId) {
-            return Promise.reject(new Error('Invalid IDs for chapter update operation'));
-        }
-        return api.put(`/api/subjectsV2/${subjectId}/unit/${unitId}/chapter/${chapterId}`, chapterData);
-    },
-    deleteChapter: (subjectId, unitId, chapterId) =>
-        api.delete(`/api/subjectsV2/${subjectId}/unit/${unitId}/chapter/${chapterId}`),    // Lecture operations
+    // Lecture operations
     addLecture: (subjectId, lectureData) => {
         // Validate ID before making request
         if (!subjectId) {
@@ -122,7 +79,9 @@ export const subjectApi = {
             return Promise.reject(new Error('Invalid IDs for deleting lecture'));
         }
         return api.delete(`/api/subjectsV2/${subjectId}/lecture/${lectureId}`);
-    },    // Reading operations
+    },
+
+    // Reading operations
     addReading: (subjectId, readingData) => {
         // Validate ID before making request
         if (!subjectId) {
@@ -142,7 +101,9 @@ export const subjectApi = {
             return Promise.reject(new Error('Invalid IDs for deleting reading'));
         }
         return api.delete(`/api/subjectsV2/${subjectId}/reading/${readingId}`);
-    },    // Assignment operations
+    },
+
+    // Assignment operations
     addAssignment: (subjectId, assignmentData) => {
         // Validate ID before making request
         if (!subjectId) {
@@ -163,7 +124,7 @@ export const subjectApi = {
         }
         return api.delete(`/api/subjectsV2/${subjectId}/assignment/${assignmentId}`);
     },
-    
+
     // Note operations
     addNote: (subjectId, noteData) => {
         // Validate ID before making request
@@ -187,13 +148,5 @@ export const subjectApi = {
     }
 };
 
-// // Auth API endpoints
-// export const authApi = {
-//     register: (userData) => api.post('/auth/register', userData),
-//     login: (credentials) => api.post('/auth/login', credentials),
-//     forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
-//     resetPassword: (token, password) => api.post(`/auth/reset-password/${token}`, { password }),
-//     googleAuth: (tokenId) => api.post('/auth/google', { tokenId }),
-// };
 
 export default api; 

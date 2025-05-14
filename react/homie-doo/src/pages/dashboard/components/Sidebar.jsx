@@ -21,6 +21,7 @@ const Sidebar = ({
   onAddSubject,
   onSelectTodo,
   onSelectFavorites,
+  onSelectAllNotes,
   isDarkMode,
   toggleDarkMode,
   onDeleteSubject,
@@ -64,7 +65,7 @@ const Sidebar = ({
   };
 
   const handleSelectAllNotes = () => {
-    setSelectedSubject(null); // Deselect any subject
+    onSelectAllNotes(); // Use the provided handler
     // Close sidebar on mobile when an option is selected
     if (isMobile) {
       toggleSidebar();
@@ -87,7 +88,11 @@ const Sidebar = ({
 
   // Handle adding a new subject
   const handleAddSubject = (newSubject) => {
-    onAddSubject(newSubject);
+    onAddSubject(newSubject).then(result => {
+      if (result && result.id) {
+        setSelectedSubject(result.id);
+      }
+    });
   };
 
   return (
@@ -314,8 +319,9 @@ const Sidebar = ({
         <DialogPrimitive.Portal>
           <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50" />
           <DialogPrimitive.Content className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-white dark:bg-gray-800 p-6 shadow-lg rounded-lg">
+            <DialogPrimitive.Title className="sr-only">Add Subject</DialogPrimitive.Title>
             <AddSubjectDialog
-              onAddSubject={handleAddSubject}
+              onAddSubject={handleAddSubject} onClose={() => setAddSubjectOpen(false)}
             />
           </DialogPrimitive.Content>
         </DialogPrimitive.Portal>

@@ -3,6 +3,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
 import { Button } from '../../../components/ui/button';
 import { X } from 'lucide-react';
+import SubjectModel from '../../../models/subjectModel';
+import { getLoggedInUserId } from '../../../utils/authUtils';
 
 const SUBJECT_COLORS = [
   { name: 'Red', value: 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-200' },
@@ -16,7 +18,11 @@ const SUBJECT_COLORS = [
 
 const ICONS = ['📚', '🧠', '🔬', '🧪', '📊', '📈', '📝', '💻', '🧮', '🔍', '🧬', '⚗️', '🔭', '📡', '📱', '🔋', '💡', ]; 
 
-const AddSubjectDialog = ({ onAddSubject, onClose = () => {} }) => {
+const AddSubjectDialog = ({ onAddSubject, onClose }) => {
+  if (typeof onClose !== 'function') {
+    throw new Error('AddSubjectDialog: onClose function is required');
+  }
+  
   const [subjectName, setSubjectName] = useState('');
   const [selectedColor, setSelectedColor] = useState(SUBJECT_COLORS[0].value);
   const [selectedIcon, setSelectedIcon] = useState(ICONS[0]);
@@ -34,26 +40,18 @@ const AddSubjectDialog = ({ onAddSubject, onClose = () => {} }) => {
     
     // Clear any previous errors
     setError('');
+    // Create a complete subject using the SubjectModel's createEmpty method
+    // take userid from local storage
+    const userId = getLoggedInUserId();
+    const newSubject = SubjectModel.createEmpty(userId);
     
-    // Create a complete subject structure with empty sections
-    const newSubject = {
-      id: uuidv4(),
-      name: subjectName.trim(),
-      color: selectedColor,
-      icon: selectedIcon,
-      courseMaterials: {
-        syllabus: {
-          title: `${subjectName.trim()} Syllabus`,
-          content: '',
-          sections: []
-        },
-        lectures: [],
-        readings: [],
-        assignments: []
-      },
-      notes: []
-    };
+    // Then set the basic properties from the form
+    newSubject.name = subjectName.trim();
+    newSubject.color = selectedColor;
+    newSubject.icon = selectedIcon;
     
+    // Set syllabus title based on subject name
+    newSubject.courseMaterials.syllabus.title = `${subjectName.trim()} Syllabus`;
     onAddSubject(newSubject);
     
     // Reset the form

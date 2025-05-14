@@ -15,55 +15,6 @@ class AttachmentModel {
     }
 }
 
-// Chapter model within Units
-class ChapterModel {
-    constructor(data = {}) {
-        this._id = data._id || null;
-        this.id = data.id || (data._id ? data._id.toString() : '');
-        this.title = data.title || '';
-        // Backend stores subtopics as simple strings
-        this.subtopics = Array.isArray(data.subtopics) 
-            ? data.subtopics.map(subtopic => {
-                if (typeof subtopic === 'string') {
-                    return subtopic;
-                }
-                return subtopic.title || ''; // Extract just the title from object format
-            }) 
-            : [];
-    }
-}
-
-// Unit model within Syllabus
-class UnitModel {
-    constructor(data = {}) {
-        this._id = data._id || null;
-        this.id = data.id || (data._id ? data._id.toString() : '');
-        this.title = data.title || '';
-        // Changed from string to number to match backend
-        this.weeks = typeof data.weeks === 'number' ? data.weeks : (parseInt(data.weeks) || 0);
-        this.chapters = Array.isArray(data.chapters) ? data.chapters.map(chapter => new ChapterModel(chapter)) : [];
-    }
-
-    // Helper method to add a chapter
-    addChapter(chapter) {
-        this.chapters.push(new ChapterModel(chapter));
-    }
-}
-
-// Syllabus model
-class SyllabusModel {
-    constructor(data = {}) {
-        this.title = data.title || '';
-        this.content = data.content || '';
-        this.units = Array.isArray(data.units) ? data.units.map(unit => new UnitModel(unit)) : [];
-    }
-
-    // Helper method to add a unit
-    addUnit(unit) {
-        this.units.push(new UnitModel(unit));
-    }
-}
-
 // Lecture model
 class LectureModel {
     constructor(data = {}) {
@@ -125,19 +76,19 @@ class NoteModel {
 // Course Materials model
 class CourseMaterialsModel {
     constructor(data = {}) {
-        this.syllabus = new SyllabusModel(data.syllabus || {});
         this.lectures = Array.isArray(data.lectures) ? data.lectures.map(lecture => new LectureModel(lecture)) : [];
         this.readings = Array.isArray(data.readings) ? data.readings.map(reading => new ReadingModel(reading)) : [];
         this.assignments = Array.isArray(data.assignments) ? data.assignments.map(assignment => new AssignmentModel(assignment)) : [];
+        this.syllabus = data.syllabus || { title: '', content: '', units: [], sections: [] };
     }
 }
 
 // Main Subject model
 class SubjectModel {
     constructor(data = {}) {
-        // Use MongoDB's _id for the main subject ID
-        this._id = data._id || null;
-        // All other entities use id field consistently
+        // Handle both id and _id to ensure consistency
+        this._id = data._id || data.id || null;
+        this.id = data._id?.toString() || data.id?.toString() || null;
         this.name = data.name || '';
         this.user = data.user || null;
         this.courseMaterials = new CourseMaterialsModel(data.courseMaterials || {});
@@ -148,13 +99,6 @@ class SubjectModel {
         this.color = data.color || '#FFFFFF'; // Default color
     }
 
-    // get id method to return the subject ID
-    get id() {
-        return this._id ? this._id.toString() : null;
-    }
-
-    
-
     // Helper to create an empty subject with default values
     static createEmpty(userId) {
         return new SubjectModel({
@@ -163,86 +107,147 @@ class SubjectModel {
             icon: '📚',
             color: '#FFFFFF',
             courseMaterials: {
+                lectures: [],
+                readings: [],
+                assignments: [],
                 syllabus: {
                     title: '',
                     content: '',
-                    units: []
-                },
-                lectures: [],
-                readings: [],
-                assignments: []
+                    units: [],
+                    sections: []
+                }
             },
             notes: []
         });
-    }    // Helper to convert backend data to frontend model
+    }
+
+    // Helper to convert backend data to frontend model
     static fromBackend(data) {
-        const subject = new SubjectModel(data);
-        
+        if (!data) return null;
+
+        // Make a deep copy to avoid modifying the original
+        const processedData = JSON.parse(JSON.stringify(data));
+
+        // Ensure subject ID consistency
+        if (processedData._id && !processedData.id) {
+            processedData.id = processedData._id.toString();
+        } else if (processedData.id && !processedData._id) {
+            processedData._id = processedData.id;
+        }
+
+        // Ensure critical fields exist
+        if (!processedData.name || processedData.name === '') {
+            console.warn('Missing name in subject data from backend');
+        }
+
+        if (!processedData.user) {
+            console.warn('Missing user in subject data from backend');
+        }
+
+        // Handle missing courseMaterials
+        if (!processedData.courseMaterials) {
+            processedData.courseMaterials = {};
+        }
+
+        // Create the model with our processed data
+        const subject = new SubjectModel(processedData);
+
         // Ensure we have proper date handling throughout the model
         if (subject.courseMaterials?.lectures) {
             subject.courseMaterials.lectures.forEach(lecture => {
                 if (lecture.date && !(lecture.date instanceof Date)) {
                     lecture.date = new Date(lecture.date);
                 }
+                // Ensure lecture IDs are consistent
+                if (lecture._id && !lecture.id) lecture.id = lecture._id.toString();
+                if (lecture.id && !lecture._id) lecture._id = lecture.id;
             });
         }
-        
+
         if (subject.courseMaterials?.assignments) {
             subject.courseMaterials.assignments.forEach(assignment => {
                 if (assignment.dueDate && !(assignment.dueDate instanceof Date)) {
                     assignment.dueDate = new Date(assignment.dueDate);
                 }
+                // Ensure assignment IDs are consistent
+                if (assignment._id && !assignment.id) assignment.id = assignment._id.toString();
+                if (assignment.id && !assignment._id) assignment._id = assignment.id;
             });
         }
-        
+
+        if (subject.courseMaterials?.readings) {
+            subject.courseMaterials.readings.forEach(reading => {
+                // Ensure reading IDs are consistent
+                if (reading._id && !reading.id) reading.id = reading._id.toString();
+                if (reading.id && !reading._id) reading._id = reading.id;
+            });
+        }
+
         if (subject.notes) {
             subject.notes.forEach(note => {
                 if (note.date && !(note.date instanceof Date)) {
                     note.date = new Date(note.date);
                 }
+                // Ensure note IDs are consistent
+                if (note._id && !note.id) note.id = note._id.toString();
+                if (note.id && !note._id) note._id = note.id;
             });
         }
-        
+
         return subject;
-    }    // Helper to prepare data for backend submission
+    }
+
+    // Helper to prepare data for backend submission
     toBackend() {
         // Create a copy of the object without methods
         const data = JSON.parse(JSON.stringify(this));
-        
-        // Clean up any frontend-specific properties that shouldn't go to the backend
-        // We'll keep the MongoDB _id if it exists, but remove the frontend id
-        if (data._id) {
-            delete data.id;
-        }
-        
-        // Ensure subtopics are stored as simple strings (not objects) in each chapter
-        if (data.courseMaterials?.syllabus?.units) {
-            data.courseMaterials.syllabus.units.forEach(unit => {
-                if (unit.chapters) {
-                    unit.chapters.forEach(chapter => {
-                        // Convert any object-based subtopics to simple strings
-                        if (chapter.subtopics) {
-                            chapter.subtopics = chapter.subtopics.map(subtopic => 
-                                typeof subtopic === 'object' ? subtopic.title || subtopic.toString() : subtopic
-                            );
-                        }
-                    });
-                }
-                // Ensure weeks is stored as a number
-                if (unit.weeks && typeof unit.weeks === 'string') {
-                    unit.weeks = parseInt(unit.weeks) || 0;
+
+        // Remove id and _id from the top-level object so that the backend receives only the expected properties
+        delete data.id;
+        delete data._id;
+
+        // Ensure lectures have proper _id
+        if (data.courseMaterials?.lectures) {
+            data.courseMaterials.lectures.forEach(lecture => {
+                if (lecture.id && !lecture._id) {
+                    lecture._id = lecture.id;
                 }
             });
         }
-        
+
+        // Ensure readings have proper _id
+        if (data.courseMaterials?.readings) {
+            data.courseMaterials.readings.forEach(reading => {
+                if (reading.id && !reading._id) {
+                    reading._id = reading.id;
+                }
+            });
+        }
+
+        // Ensure assignments have proper _id
+        if (data.courseMaterials?.assignments) {
+            data.courseMaterials.assignments.forEach(assignment => {
+                if (assignment.id && !assignment._id) {
+                    assignment._id = assignment.id;
+                }
+            });
+        }
+
+        // Ensure notes have proper _id
+        if (data.notes) {
+            data.notes.forEach(note => {
+                if (note.id && !note._id) {
+                    note._id = note.id;
+                }
+            });
+        }
+
         return data;
     }
 }
 
 export {
     SubjectModel,
-    UnitModel,
-    ChapterModel,
     LectureModel,
     ReadingModel,
     AssignmentModel,

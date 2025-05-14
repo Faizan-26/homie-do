@@ -6,7 +6,6 @@ import LoginPage from './pages/login/login-page'
 import ResetPasswordPage from './pages/reset-password/reset-password-page'
 import DashboardPage from './pages/dashboard/dashboard-page'
 import PreviewDocument from './pages/dashboard/preview_document'
-import Todo from './pages/dashboard/components/Todo';
 import { useAuth } from './context/AuthContext'
 
 // Protected route component
@@ -46,14 +45,6 @@ function App() {
           element={
             <ProtectedRoute>
               <PreviewDocument />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/todos" 
-          element={
-            <ProtectedRoute>
-              <Todo />
             </ProtectedRoute>
           } 
         />

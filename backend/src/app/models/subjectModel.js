@@ -16,28 +16,12 @@ const subjectSchema = new mongoose.Schema({
   },
 
   courseMaterials: {
-    syllabus: {
-      title: { type: String },
-      content: { type: String },
-      units: [{
-        // Removed explicit id field to use MongoDB's _id
-        title: { type: String, required: true },
-        weeks: { type: Number }, // Changed from String to Number
-        chapters: [{
-          // Removed explicit id field to use MongoDB's _id
-          title: { type: String, required: true },
-          subtopics: [String] // contains an array of subtopics as strings
-        }]
-      }]
-    },
     lectures: [{
-      // Removed explicit id field to use MongoDB's _id
       title: { type: String },
       date: { type: Date, default: Date.now }, // Changed from String to Date
       content: { type: String },
       isFavorite: { type: Boolean, default: false },
       attachments: [{
-        // Removed explicit id field to use MongoDB's _id
         name: { type: String }, // name of the file
         type: { type: String }, // pdf, doc, etc.
         size: { type: Number }, // size in bytes
@@ -45,14 +29,12 @@ const subjectSchema = new mongoose.Schema({
       }]
     }],
     readings: [{
-      // Removed explicit id field to use MongoDB's _id
       title: { type: String },
       type: { type: String }, // TEXTBOOK, ARTICLE, VIDEO, etc.
       typeFieldOne: { type: String },
       typeFieldTwo: { type: String },
       isFavorite: { type: Boolean, default: false },
       attachments: [{
-        // Removed explicit id field to use MongoDB's _id
         name: { type: String }, // name of the file
         type: { type: String }, // pdf, doc, etc.
         size: { type: Number }, // size in bytes
@@ -60,7 +42,6 @@ const subjectSchema = new mongoose.Schema({
       }]
     }],
     assignments: [{
-      // Removed explicit id field to use MongoDB's _id
       title: { type: String },
       dueDate: { type: Date }, // Changed from String to Date
       points: { type: Number },
@@ -68,7 +49,6 @@ const subjectSchema = new mongoose.Schema({
       isCompleted: { type: Boolean, default: false },
       isFavorite: { type: Boolean, default: false },
       attachments: [{
-        // Removed explicit id field to use MongoDB's _id
         name: { type: String }, // name of the file
         type: { type: String }, // pdf, doc, etc.
         size: { type: Number }, // size in bytes

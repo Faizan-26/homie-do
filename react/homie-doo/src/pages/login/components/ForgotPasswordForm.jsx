@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import FormInput from './FormInput';
 import { Button } from '../../../components/ui/button';
 import config from '../../../config';
+import { getEmailValidationError } from '../../../utils/validators';
 
 const ForgotPasswordForm = ({ onBackToLogin }) => {
   const [email, setEmail] = useState('');
@@ -11,12 +12,10 @@ const ForgotPasswordForm = ({ onBackToLogin }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email) {
-      setError('Email is required');
-      return;
-    }
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      setError('Please enter a valid email');
+    
+    const emailError = getEmailValidationError(email);
+    if (emailError) {
+      setError(emailError);
       return;
     }
     

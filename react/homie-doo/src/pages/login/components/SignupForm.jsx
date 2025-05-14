@@ -5,6 +5,7 @@ import { Button } from '../../../components/ui/button';
 import { FaGoogle } from 'react-icons/fa';
 import { useAuth } from '../../../context/AuthContext';
 import config from '../../../config';
+import { getEmailValidationError } from '../../../utils/validators';
 
 const SignupForm = () => {
   const navigate = useNavigate();
@@ -42,11 +43,12 @@ const SignupForm = () => {
     if (!formData.fullName) {
       newErrors.fullName = 'Full name is required';
     }
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
+    
+    const emailError = getEmailValidationError(formData.email);
+    if (emailError) {
+      newErrors.email = emailError;
     }
+    
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {

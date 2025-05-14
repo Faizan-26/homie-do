@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import cloudinaryService from '../../utils/cloudinaryService';
+import Chatbot from '../../components/Chatbot/Chatbot';
 
 const DocumentPreviewPage = () => {
   const location = useLocation();
@@ -395,88 +396,22 @@ const DocumentPreviewPage = () => {
         {!isMobile && sidebarOpen && (
           <aside className="w-96 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 fixed right-0 top-[73px] bottom-0 overflow-hidden shadow-lg z-10">
             <div className="p-4 h-full flex flex-col">
-              {/* Chat conversations will go here */}
-              <div className="flex-1 overflow-auto mb-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-                <div className="space-y-4">
-                  {/* Sample welcome message */}
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mr-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
-                        <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
-                      </svg>
-                    </div>
-                    <div className="bg-white dark:bg-gray-700 rounded-lg p-3 shadow-sm max-w-[85%]">
-                      <p className="text-sm text-gray-800 dark:text-gray-200">
-                        Ask me anything about this document! I can help you understand the content or highlight key information.
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {/* Sample Q&A, only shown if user has asked questions */}
-                  {question && (
-                    <>
-                      <div className="flex items-start justify-end">
-                        <div className="bg-blue-500 rounded-lg p-3 shadow-sm max-w-[85%]">
-                          <p className="text-sm text-white">
-                            {question}
-                          </p>
-                        </div>
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white ml-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-start">
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mr-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
-                            <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
-                          </svg>
-                        </div>
-                        <div className="bg-white dark:bg-gray-700 rounded-lg p-3 shadow-sm max-w-[85%]">
-                          <p className="text-sm text-gray-800 dark:text-gray-200">
-                            Analyzing your question. I'll have an answer for you shortly!
-                          </p>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
+              {/* Integrated Chatbot */}
+              <div className="flex-1 overflow-hidden">
+                <Chatbot 
+                  fileUrl={fileData.url} 
+                  documentName={fileData.name}
+                />
               </div>
               
               {/* File information */}
-              <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+              <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
                 <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
                   <li><strong>Name:</strong> {fileData.name}</li>
                   <li><strong>Type:</strong> {fileData.type || 'Unknown'}</li>
                   <li><strong>Size:</strong> {fileData.size ? formatFileSize(fileData.size) : 'Unknown'}</li>
                 </ul>
               </div>
-              
-              {/* Question input */}
-              <form onSubmit={handleSubmitQuestion} className="mt-auto">
-                <div className="relative">
-                  <textarea
-                    value={question}
-                    onChange={(e) => setQuestion(e.target.value)}
-                    placeholder="Ask a question about this document..."
-                    className="w-full p-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-sm resize-none"
-                    rows={3}
-                  />
-                  <button
-                    type="submit"
-                    className="absolute right-2 bottom-2 p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-                    disabled={!question.trim()}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                </div>
-              </form>
             </div>
           </aside>
         )}
@@ -503,88 +438,22 @@ const DocumentPreviewPage = () => {
                   <div className="w-10"></div> {/* Spacer to center the title */}
                 </div>
 
-                {/* Chat content */}
-                <div className="flex-1 overflow-auto mb-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-                  <div className="space-y-4">
-                    {/* Sample welcome message */}
-                    <div className="flex items-start">
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mr-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
-                          <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
-                        </svg>
-                      </div>
-                      <div className="bg-white dark:bg-gray-700 rounded-lg p-3 shadow-sm max-w-[85%]">
-                        <p className="text-sm text-gray-800 dark:text-gray-200">
-                          Ask me anything about this document! I can help you understand the content or highlight key information.
-                        </p>
-                      </div>
-                    </div>
-                    
-                    {/* Sample Q&A, only shown if user has asked questions */}
-                    {question && (
-                      <>
-                        <div className="flex items-start justify-end">
-                          <div className="bg-blue-500 rounded-lg p-3 shadow-sm max-w-[85%]">
-                            <p className="text-sm text-white">
-                              {question}
-                            </p>
-                          </div>
-                          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white ml-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                            </svg>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-start">
-                          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mr-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
-                              <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
-                            </svg>
-                          </div>
-                          <div className="bg-white dark:bg-gray-700 rounded-lg p-3 shadow-sm max-w-[85%]">
-                            <p className="text-sm text-gray-800 dark:text-gray-200">
-                              Analyzing your question. I'll have an answer for you shortly!
-                            </p>
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
+                {/* Integrated Chatbot */}
+                <div className="flex-1 overflow-hidden">
+                  <Chatbot 
+                    fileUrl={fileData.url} 
+                    documentName={fileData.name}
+                  />
                 </div>
                 
                 {/* File information */}
-                <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
                   <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
                     <li><strong>Name:</strong> {fileData.name}</li>
                     <li><strong>Type:</strong> {fileData.type || 'Unknown'}</li>
                     <li><strong>Size:</strong> {fileData.size ? formatFileSize(fileData.size) : 'Unknown'}</li>
                   </ul>
                 </div>
-                
-                {/* Question input */}
-                <form onSubmit={handleSubmitQuestion} className="mt-auto">
-                  <div className="relative">
-                    <textarea
-                      value={question}
-                      onChange={(e) => setQuestion(e.target.value)}
-                      placeholder="Ask a question about this document..."
-                      className="w-full p-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-sm resize-none"
-                      rows={3}
-                    />
-                    <button
-                      type="submit"
-                      className="absolute right-2 bottom-2 p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-                      disabled={!question.trim()}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                  </div>
-                </form>
               </div>
             </div>
           </div>

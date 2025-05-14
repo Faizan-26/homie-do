@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '../../../components/ui/button';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -9,9 +10,12 @@ import {
   DialogTitle,
 } from '../../../components/ui/dialog';
 import FileUploader from '../../../components/FileUploader';
+import { AttachmentModel } from '../../../models/subjectModel';
+import useSubjectContentStore from '../../../store/subjectContentStore';
 
 // Lecture Dialogs
-export const AddLectureDialog = ({ isOpen, onClose, onAddLecture }) => {
+export const AddLectureDialog = ({ isOpen, onClose }) => {
+  const addLecture = useSubjectContentStore(state => state.addLecture);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState([]);
@@ -35,6 +39,14 @@ export const AddLectureDialog = ({ isOpen, onClose, onAddLecture }) => {
     else return (bytes / 1048576).toFixed(1) + ' MB';
   };
 
+  const handlePreviewFile = (file) => {
+    // Store file data in localStorage for the preview page
+    localStorage.setItem('previewFileData', JSON.stringify(file));
+    
+    // Open preview in a new tab
+    window.open('/dashboard/preview-document', '_blank');
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     
@@ -50,10 +62,16 @@ export const AddLectureDialog = ({ isOpen, onClose, onAddLecture }) => {
         resourceType: fileData.resource_type || 'raw'
       }));
       
-      // Create attachments list from file names
-      const attachments = files.map(file => file.originalName || file.name);
+      // Create proper attachment objects instead of just strings
+      const attachments = files.map(file => new AttachmentModel({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        url: file.url
+      }));
       
-      onAddLecture({
+      // Call store action directly
+      addLecture({
         title: title.trim(),
         content: content.trim(),
         attachments,
@@ -124,7 +142,17 @@ export const AddLectureDialog = ({ isOpen, onClose, onAddLecture }) => {
                   <div className="space-y-2">
                     {uploadedFiles.map((file, index) => (
                       <div key={index} className="flex items-center justify-between p-2 border rounded-md bg-gray-50">
-                        <div className="flex items-center space-x-2">
+                        <div 
+                          className="flex items-center space-x-2 cursor-pointer flex-grow overflow-hidden"
+                          onClick={() => handlePreviewFile({
+                            name: file.originalFilename || file.original_filename || file.public_id,
+                            type: file.resource_type === 'image' ? `image/${file.format}` : file.format || 'application/octet-stream',
+                            size: file.bytes || 0,
+                            url: file.secure_url || file.url || '',
+                            publicId: file.public_id || '',
+                            resourceType: file.resource_type || 'raw'
+                          })}
+                        >
                           {file.resource_type === 'image' ? (
                             <img 
                               src={file.secure_url || file.url} 
@@ -136,15 +164,26 @@ export const AddLectureDialog = ({ isOpen, onClose, onAddLecture }) => {
                               📄
                             </div>
                           )}
-                          <div>
+                          <div className="overflow-hidden">
                             <p className="text-sm font-medium truncate max-w-[200px]">
                               {file.originalFilename || file.original_filename || file.public_id}
                             </p>
                             <p className="text-xs text-gray-500">
-                              {formatFileSize(file.bytes || file.size || 0)}
+                              {formatFileSize(file.bytes || file.size || 0)} • Click to preview
                             </p>
                           </div>
                         </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+                          }}
+                          className="p-1 text-red-500 hover:text-red-700 ml-2"
+                          aria-label="Remove file"
+                        >
+                          🗑️
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -176,11 +215,13 @@ export const AddLectureDialog = ({ isOpen, onClose, onAddLecture }) => {
   );
 };
 
-export const EditLectureDialog = ({ isOpen, onClose, lecture, onUpdateLecture }) => {
+export const EditLectureDialog = ({ isOpen, onClose, lecture }) => {
+  const updateLecture = useSubjectContentStore(state => state.updateLecture);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [uploadErrors, setUploadErrors] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (lecture) {
@@ -223,13 +264,21 @@ export const EditLectureDialog = ({ isOpen, onClose, lecture, onUpdateLecture })
   const handleRemoveFile = (indexToRemove) => {
     setUploadedFiles(uploadedFiles.filter((_, index) => index !== indexToRemove));
   };
+  
+  const handlePreviewFile = (file) => {
+    // Store file data in localStorage for the preview page
+    localStorage.setItem('previewFileData', JSON.stringify(file));
+    
+    // Open preview in a new tab
+    window.open('/dashboard/preview-document', '_blank');
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
     if (title.trim() && content.trim()) {
       // Create file objects with consistent naming
-      const files = uploadedFiles.map(fileData => {
+      const files = uploadedFiles.length > 0 ? uploadedFiles.map(fileData => {
         const fileName = fileData.originalFilename || fileData.original_filename || 
                         (fileData.public_id ? fileData.public_id.split('/').pop() : 'Unknown file');
         
@@ -243,13 +292,18 @@ export const EditLectureDialog = ({ isOpen, onClose, lecture, onUpdateLecture })
           publicId: fileData.public_id || '',
           resourceType: fileData.resource_type || 'raw'
         };
-      });
+      }) : [];
       
-      // Create attachments list from file names
-      const attachments = files.map(file => file.originalName || file.name);
+      // Create proper attachment objects instead of just strings
+      const attachments = files.length > 0 ? files.map(file => new AttachmentModel({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        url: file.url
+      })) : [];
       
-      onUpdateLecture({
-        ...lecture,
+      // Use zustand to update the lecture - pass ID first, then updated data
+      updateLecture(lecture.id, {
         title: title.trim(),
         content: content.trim(),
         attachments,
@@ -316,7 +370,17 @@ export const EditLectureDialog = ({ isOpen, onClose, lecture, onUpdateLecture })
                   <div className="space-y-2">
                     {uploadedFiles.map((file, index) => (
                       <div key={index} className="flex items-center justify-between p-2 border rounded-md bg-gray-50">
-                        <div className="flex items-center space-x-2">
+                        <div 
+                          className="flex items-center space-x-2 cursor-pointer flex-grow overflow-hidden"
+                          onClick={() => handlePreviewFile({
+                            name: file.originalFilename || file.original_filename || file.public_id,
+                            type: file.resource_type === 'image' ? `image/${file.format}` : file.format || 'application/octet-stream',
+                            size: file.bytes || 0,
+                            url: file.secure_url || file.url || '',
+                            publicId: file.public_id || '',
+                            resourceType: file.resource_type || 'raw'
+                          })}
+                        >
                           {file.resource_type === 'image' ? (
                             <img 
                               src={file.secure_url || file.url} 
@@ -328,19 +392,22 @@ export const EditLectureDialog = ({ isOpen, onClose, lecture, onUpdateLecture })
                               📄
                             </div>
                           )}
-                          <div>
+                          <div className="overflow-hidden">
                             <p className="text-sm font-medium truncate max-w-[200px]">
                               {file.originalFilename || file.original_filename || file.public_id}
                             </p>
                             <p className="text-xs text-gray-500">
-                              {formatFileSize(file.bytes || file.size || 0)}
+                              {formatFileSize(file.bytes || file.size || 0)} • Click to preview
                             </p>
                           </div>
                         </div>
                         <button
                           type="button"
-                          onClick={() => handleRemoveFile(index)}
-                          className="p-1 text-red-500 hover:text-red-700"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+                          }}
+                          className="p-1 text-red-500 hover:text-red-700 ml-2"
                           aria-label="Remove file"
                         >
                           🗑️
@@ -387,7 +454,8 @@ const READING_TYPES = {
 };
 
 // Reading Materials Dialogs
-export const AddReadingDialog = ({ isOpen, onClose, onAddReading }) => {
+export const AddReadingDialog = ({ isOpen, onClose }) => {
+  const addReading = useSubjectContentStore(state => state.addReading);
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [type, setType] = useState('Textbook');
@@ -430,10 +498,16 @@ export const AddReadingDialog = ({ isOpen, onClose, onAddReading }) => {
         resourceType: fileData.resource_type || 'raw'
       }));
       
-      // Create attachments list from file names
-      const attachments = files.map(file => file.originalName || file.name);
+      // Create proper attachment objects instead of just strings
+      const attachments = files.map(file => new AttachmentModel({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        url: file.url
+      }));
       
-      onAddReading({
+      // Call store action directly
+      addReading({
         title: title.trim(),
         author: author.trim(),
         type,
@@ -441,8 +515,8 @@ export const AddReadingDialog = ({ isOpen, onClose, onAddReading }) => {
         source: ['Journal Article', 'Web Resource', 'Video'].includes(type) ? source.trim() : null,
         length: type === 'Video' ? length.trim() : null,
         url: ['Web Resource', 'Video'].includes(type) ? url.trim() : null,
-        files,
-        attachments
+        attachments,
+        files
       });
       
       // Reset form
@@ -454,7 +528,6 @@ export const AddReadingDialog = ({ isOpen, onClose, onAddReading }) => {
       setLength('');
       setUrl('');
       setUploadedFiles([]);
-      setUploadErrors([]);
       onClose();
     }
   };
@@ -716,7 +789,8 @@ export const AddReadingDialog = ({ isOpen, onClose, onAddReading }) => {
   );
 };
 
-export const EditReadingDialog = ({ isOpen, onClose, reading, onUpdateReading }) => {
+export const EditReadingDialog = ({ isOpen, onClose, reading }) => {
+  const updateReading = useSubjectContentStore(state => state.updateReading);
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [type, setType] = useState('Textbook');
@@ -799,27 +873,31 @@ export const EditReadingDialog = ({ isOpen, onClose, reading, onUpdateReading })
     e.preventDefault();
     if (title.trim()) {
       // Process uploaded files
-      const files = uploadedFiles.map(fileData => {
+      const files = uploadedFiles.length > 0 ? uploadedFiles.map(fileData => {
         const fileName = fileData.originalFilename || fileData.original_filename || 
                         (fileData.public_id ? fileData.public_id.split('/').pop() : 'Unknown file');
         
         return {
           name: fileName,
           originalName: fileName,
-          type: fileData.resource_type === 'image' ? `image/${fileData.format}` : 
-                fileData.format || 'application/octet-stream',
+          type: fileData.resource_type === 'image' ? `image/${fileData.format}` : fileData.format || 'application/octet-stream',
           size: fileData.bytes || 0,
           url: fileData.secure_url || fileData.url || '',
           publicId: fileData.public_id || '',
           resourceType: fileData.resource_type || 'raw'
         };
-      });
+      }) : [];
       
-      // Create attachments list from file names
-      const attachments = files.map(file => file.originalName || file.name);
+      // Create proper attachment objects instead of just strings
+      const attachments = files.length > 0 ? files.map(file => new AttachmentModel({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        url: file.url
+      })) : [];
       
-      onUpdateReading({
-        ...reading,
+      // Use store action directly - pass ID first, then updated data
+      updateReading(reading.id, {
         title: title.trim(),
         author: author.trim(),
         type,
@@ -1089,23 +1167,24 @@ const getFileIcon = (file) => {
 };
 
 // Assignment Dialogs
-export const AddAssignmentDialog = ({ isOpen, onClose, onAddAssignment }) => {
+export const AddAssignmentDialog = ({ isOpen, onClose }) => {
+  const addAssignment = useSubjectContentStore(state => state.addAssignment);
   const [title, setTitle] = useState('');
-  const [dueDate, setDueDate] = useState(new Date().toISOString().split('T')[0]);
-  const [points, setPoints] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [points, setPoints] = useState(10);
   const [instructions, setInstructions] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [uploadErrors, setUploadErrors] = useState([]);
 
   const formatFileSize = (bytes) => {
-    if (bytes < 1024) return bytes + ' bytes';
-    else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-    else return (bytes / 1048576).toFixed(1) + ' MB';
+    if (!bytes || isNaN(bytes)) return '0 B';
+    if (bytes < 1024) return bytes + ' B';
+    else if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    else return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
   const handleFileUploadComplete = (results) => {
     setUploadedFiles(prev => [...prev, ...results]);
-    setUploadErrors([]);
   };
 
   const handleFileUploadError = (errors) => {
@@ -1114,39 +1193,42 @@ export const AddAssignmentDialog = ({ isOpen, onClose, onAddAssignment }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (title.trim() && dueDate && points) {
-      // Create file objects with consistent naming
-      const files = uploadedFiles.map(fileData => {
-        const fileName = fileData.originalFilename || fileData.original_filename || 
-                        (fileData.public_id ? fileData.public_id.split('/').pop() : 'Unknown file');
-        
-        return {
-          name: fileName,
-          originalName: fileName,
-          type: fileData.resource_type === 'image' ? `image/${fileData.format}` : fileData.format || 'application/octet-stream',
-          size: fileData.bytes || 0,
-          url: fileData.secure_url || fileData.url || '',
-          publicId: fileData.public_id || '',
-          resourceType: fileData.resource_type || 'raw'
-        };
-      });
+    
+    if (title.trim() && dueDate.trim()) {
+      // Process uploaded files
+      const files = uploadedFiles.map(fileData => ({
+        name: fileData.originalFilename || fileData.original_filename || (fileData.public_id ? fileData.public_id.split('/').pop() : 'file'),
+        originalName: fileData.originalFilename || fileData.original_filename || (fileData.public_id ? fileData.public_id.split('/').pop() : 'file'),
+        type: fileData.resource_type === 'image' ? `image/${fileData.format}` : fileData.format || 'application/octet-stream',
+        size: fileData.bytes || 0,
+        url: fileData.secure_url || fileData.url || '',
+        publicId: fileData.public_id || '',
+        resourceType: fileData.resource_type || 'raw'
+      }));
       
-      // Create attachments list from file names
-      const attachments = files.map(file => file.originalName || file.name);
+      // Create proper attachment objects instead of just strings
+      const attachments = files.map(file => new AttachmentModel({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        url: file.url
+      }));
       
-      onAddAssignment({
+      // Call store action directly
+      addAssignment({
         title: title.trim(),
-        dueDate,
-        points: parseInt(points, 10),
+        dueDate: new Date(dueDate),
+        points: Number(points),
         instructions: instructions.trim(),
+        isCompleted: false,
         attachments,
         files
       });
       
       // Reset form
       setTitle('');
-      setDueDate(new Date().toISOString().split('T')[0]);
-      setPoints('');
+      setDueDate('');
+      setPoints(10);
       setInstructions('');
       setUploadedFiles([]);
       onClose();
@@ -1290,7 +1372,8 @@ export const AddAssignmentDialog = ({ isOpen, onClose, onAddAssignment }) => {
   );
 };
 
-export const EditAssignmentDialog = ({ isOpen, onClose, assignment, onUpdateAssignment }) => {
+export const EditAssignmentDialog = ({ isOpen, onClose, assignment }) => {
+  const updateAssignment = useSubjectContentStore(state => state.updateAssignment);
   const [title, setTitle] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [points, setPoints] = useState('');
@@ -1301,7 +1384,13 @@ export const EditAssignmentDialog = ({ isOpen, onClose, assignment, onUpdateAssi
   useEffect(() => {
     if (assignment) {
       setTitle(assignment.title || '');
-      setDueDate(assignment.dueDate || new Date().toISOString().split('T')[0]);
+      // Convert date object to string format for the date input
+      const formattedDate = assignment.dueDate instanceof Date 
+        ? assignment.dueDate.toISOString().split('T')[0]
+        : typeof assignment.dueDate === 'string' 
+          ? assignment.dueDate.split('T')[0]
+          : new Date().toISOString().split('T')[0];
+      setDueDate(formattedDate);
       setPoints(assignment.points || '');
       setInstructions(assignment.instructions || '');
       
@@ -1344,32 +1433,36 @@ export const EditAssignmentDialog = ({ isOpen, onClose, assignment, onUpdateAssi
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (title.trim() && dueDate && points) {
-      // Create file objects with consistent naming
-      const files = uploadedFiles.map(fileData => {
+    if (title.trim() && dueDate.trim()) {
+      // Process uploaded files
+      const files = uploadedFiles.length > 0 ? uploadedFiles.map(fileData => {
         const fileName = fileData.originalFilename || fileData.original_filename || 
                         (fileData.public_id ? fileData.public_id.split('/').pop() : 'Unknown file');
         
         return {
           name: fileName,
           originalName: fileName,
-          type: fileData.resource_type === 'image' ? `image/${fileData.format}` : 
-                fileData.format || 'application/octet-stream',
+          type: fileData.resource_type === 'image' ? `image/${fileData.format}` : fileData.format || 'application/octet-stream',
           size: fileData.bytes || 0,
           url: fileData.secure_url || fileData.url || '',
           publicId: fileData.public_id || '',
           resourceType: fileData.resource_type || 'raw'
         };
-      });
+      }) : [];
       
-      // Create attachments list from file names
-      const attachments = files.map(file => file.originalName || file.name);
+      // Create proper attachment objects instead of just strings
+      const attachments = files.length > 0 ? files.map(file => new AttachmentModel({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        url: file.url
+      })) : [];
       
-      onUpdateAssignment({
-        ...assignment,
+      // Use store action directly - pass ID first, then updated data
+      updateAssignment(assignment.id, {
         title: title.trim(),
-        dueDate,
-        points: parseInt(points, 10),
+        dueDate: new Date(dueDate),
+        points: Number(points),
         instructions: instructions.trim(),
         attachments,
         files
@@ -1522,21 +1615,30 @@ export const EditAssignmentDialog = ({ isOpen, onClose, assignment, onUpdateAssi
   );
 };
 
-export const AddNoteDialog = ({ isOpen, onClose, onAddNote }) => {
+export const AddNoteDialog = ({ isOpen, onClose }) => {
+  const addNote = useSubjectContentStore(state => state.addNote);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [tags, setTags] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (title.trim() && content.trim()) {
-      onAddNote({
+      // Process tags - split by comma, trim whitespace, and remove empty strings
+      const tagsList = tags
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(tag => tag.length > 0);
+      
+      // Call store action directly
+      addNote({
         title: title.trim(),
         content: content.trim(),
         date,
         createdAt: new Date().toISOString(),
         lastEdited: new Date().toISOString(),
-        tags: [],
+        tags: tagsList,
         highlights: [],
         hasImages: false,
         imageDescriptions: []
@@ -1546,6 +1648,7 @@ export const AddNoteDialog = ({ isOpen, onClose, onAddNote }) => {
       setTitle('');
       setContent('');
       setDate(new Date().toISOString().split('T')[0]);
+      setTags('');
       onClose();
     }
   };
@@ -1604,6 +1707,20 @@ export const AddNoteDialog = ({ isOpen, onClose, onAddNote }) => {
             />
           </div>
           
+          <div className="space-y-2">
+            <label htmlFor="note-tags" className="text-sm font-medium">
+              Tags (comma separated)
+            </label>
+            <input
+              id="note-tags"
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+              placeholder="e.g., important, exam, review"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="text-xs text-gray-500">Separate tags with commas (e.g., "important, exam, review")</p>
+          </div>
+          
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
@@ -1616,27 +1733,63 @@ export const AddNoteDialog = ({ isOpen, onClose, onAddNote }) => {
   );
 };
 
-export const EditNoteDialog = ({ isOpen, onClose, note, onUpdateNote }) => {
+export const EditNoteDialog = ({ isOpen, onClose, note }) => {
+  const updateNote = useSubjectContentStore(state => state.updateNote);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [date, setDate] = useState('');
+  const [tags, setTags] = useState('');
 
   useEffect(() => {
     if (note) {
       setTitle(note.title || '');
       setContent(note.content || '');
-      setDate(note.date || new Date().toISOString().split('T')[0]);
+      
+      // Properly format the date for the date input field
+      if (note.date) {
+        try {
+          // Convert to Date object first
+          const dateObj = new Date(note.date);
+          // Check if valid date
+          if (!isNaN(dateObj.getTime())) {
+            // Format as YYYY-MM-DD for input[type="date"]
+            const formattedDate = dateObj.toISOString().split('T')[0];
+            setDate(formattedDate);
+          } else {
+            setDate(new Date().toISOString().split('T')[0]);
+          }
+        } catch (error) {
+          console.error('Error parsing date:', error);
+          setDate(new Date().toISOString().split('T')[0]);
+        }
+      } else {
+        setDate(new Date().toISOString().split('T')[0]);
+      }
+      
+      // Join tags into comma-separated string for editing
+      if (note.tags && Array.isArray(note.tags)) {
+        setTags(note.tags.join(', '));
+      } else {
+        setTags('');
+      }
     }
   }, [note]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (title.trim() && content.trim()) {
-      onUpdateNote({
-        ...note,
+      // Process tags - split by comma, trim whitespace, and remove empty strings
+      const tagsList = tags
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(tag => tag.length > 0);
+      
+      // Use store action directly - pass ID first, then updated data
+      updateNote(note.id, {
         title: title.trim(),
         content: content.trim(),
         date,
+        tags: tagsList,
         lastEdited: new Date().toISOString()
       });
       
@@ -1694,6 +1847,20 @@ export const EditNoteDialog = ({ isOpen, onClose, note, onUpdateNote }) => {
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+          </div>
+          
+          <div className="space-y-2">
+            <label htmlFor="edit-note-tags" className="text-sm font-medium">
+              Tags (comma separated)
+            </label>
+            <input
+              id="edit-note-tags"
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+              placeholder="e.g., important, exam, review"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="text-xs text-gray-500">Separate tags with commas (e.g., "important, exam, review")</p>
           </div>
           
           <DialogFooter>

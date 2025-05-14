@@ -51,6 +51,15 @@ export const getAuthHeaders = () => {
     return headers;
 };
 
+export const getLoggedInUserId = () => {
+   const userInfo = localStorage.getItem('user');
+    if (userInfo) {
+         const user = JSON.parse(userInfo);
+         return user.id; // Assuming the user object has an 'id' property
+    }
+    return null;
+}
+
 /**
  * Parse token payload (without verification)
  * This is NOT secure for authentication purposes but can be used for UI decisions

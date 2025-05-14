@@ -1,5 +1,5 @@
 // filepath: d:\Study\Sem 6\web\homie-do\react\homie-doo\src\services\subjectServiceV2.js
-import {subjectApi} from './apiV2.js';
+import { subjectApi } from './apiV2.js';
 import { SubjectModel } from '../models/subjectModel.js';
 
 /**
@@ -23,21 +23,13 @@ export const subjectService = {
     },
 
     // Create a new subject
-    createSubject: async (userId, subjectData) => {
+    createSubject: async (subjectData) => {
         try {
-            // Prepare the subject data for backend using the SubjectModel
-            const newSubject = new SubjectModel({
-                ...subjectData,
-                user: userId
-            });
-            
-            const dataForBackend = newSubject.toBackend();
-            const response = await subjectApi.create(dataForBackend);
-            
+            const response = await subjectApi.create(subjectData);
             if (response.status !== 201) {
                 throw new Error('Failed to create subject');
             }
-            
+
             return SubjectModel.fromBackend(response.data);
         } catch (error) {
             console.error('Error creating subject:', error);
@@ -46,7 +38,7 @@ export const subjectService = {
     },
 
     // Delete a subject by ID
-    deleteSubject: async ( subjectId) => {
+    deleteSubject: async (subjectId) => {
         try {
             const response = await subjectApi.delete(subjectId);
             if (response.status !== 200) {
@@ -59,106 +51,8 @@ export const subjectService = {
         }
     },
 
-    // Update syllabus of a subject
-    updateSyllabus: async ( subjectId, syllabusData) => {
-        try {
-            const response = await subjectApi.updateSyllabus(subjectId, syllabusData);
-            if (response.status !== 200) {
-                throw new Error('Failed to update syllabus');
-            }
-            return SubjectModel.fromBackend(response.data);
-        } catch (error) {
-            console.error(`Error updating syllabus for subject ${subjectId}:`, error);
-            throw error;
-        }
-    },
-
-    // Add unit to a subject
-    addUnit: async ( subjectId, unitData) => {
-        try {
-            const response = await subjectApi.addUnit(subjectId, unitData);
-            if (response.status !== 201) {
-                throw new Error('Failed to add unit');
-            }
-            return SubjectModel.fromBackend(response.data);
-        } catch (error) {
-            console.error(`Error adding unit to subject ${subjectId}:`, error);
-            throw error;
-        }
-    },
-
-    // Edit unit of a subject
-    editUnit: async ( subjectId, unitId, unitData) => {
-        try {
-            const response = await subjectApi.updateUnit(subjectId, unitId, unitData);
-            if (response.status !== 200) {
-                throw new Error('Failed to update unit');
-            }
-            return SubjectModel.fromBackend(response.data);
-        } catch (error) {
-            console.error(`Error updating unit ${unitId} in subject ${subjectId}:`, error);
-            throw error;
-        }
-    },
-
-    // Delete unit from a subject
-    deleteUnit: async ( subjectId, unitId) => {
-        try {
-            const response = await subjectApi.deleteUnit(subjectId, unitId);
-            if (response.status !== 200) {
-                throw new Error('Failed to delete unit');
-            }
-            return SubjectModel.fromBackend(response.data);
-        } catch (error) {
-            console.error(`Error deleting unit ${unitId} from subject ${subjectId}:`, error);
-            throw error;
-        }
-    },
-
-    // Add chapter to a unit
-    addChapter: async ( subjectId, unitId, chapterData) => {
-        try {
-            const response = await subjectApi.addChapter(subjectId, unitId, chapterData);
-            if (response.status !== 201) {
-                throw new Error('Failed to add chapter');
-            }
-            return SubjectModel.fromBackend(response.data);
-        } catch (error) {
-            console.error(`Error adding chapter to unit ${unitId} in subject ${subjectId}:`, error);
-            throw error;
-        }
-    },
-
-    // Edit chapter in a unit
-    editChapter: async ( subjectId, unitId, chapterId, chapterData) => {
-        try {
-            const response = await subjectApi.updateChapter(subjectId, unitId, chapterId, chapterData);
-            if (response.status !== 200) {
-                throw new Error('Failed to update chapter');
-            }
-            return SubjectModel.fromBackend(response.data);
-        } catch (error) {
-            console.error(`Error updating chapter ${chapterId} in unit ${unitId} of subject ${subjectId}:`, error);
-            throw error;
-        }
-    },
-
-    // Delete chapter from a unit
-    deleteChapter: async ( subjectId, unitId, chapterId) => {
-        try {
-            const response = await subjectApi.deleteChapter(subjectId, unitId, chapterId);
-            if (response.status !== 200) {
-                throw new Error('Failed to delete chapter');
-            }
-            return SubjectModel.fromBackend(response.data);
-        } catch (error) {
-            console.error(`Error deleting chapter ${chapterId} from unit ${unitId} in subject ${subjectId}:`, error);
-            throw error;
-        }
-    },
-
     // Add lecture to a subject
-    addLecture: async ( subjectId, lectureData) => {
+    addLecture: async (subjectId, lectureData) => {
         try {
             const response = await subjectApi.addLecture(subjectId, lectureData);
             if (response.status !== 201) {
@@ -172,7 +66,7 @@ export const subjectService = {
     },
 
     // Edit lecture in a subject
-    editLecture: async ( subjectId, lectureId, lectureData) => {
+    editLecture: async (subjectId, lectureId, lectureData) => {
         try {
             const response = await subjectApi.updateLecture(subjectId, lectureId, lectureData);
             if (response.status !== 200) {
@@ -186,7 +80,7 @@ export const subjectService = {
     },
 
     // Delete lecture from a subject
-    deleteLecture: async ( subjectId, lectureId) => {
+    deleteLecture: async (subjectId, lectureId) => {
         try {
             const response = await subjectApi.deleteLecture(subjectId, lectureId);
             if (response.status !== 200) {
@@ -200,7 +94,7 @@ export const subjectService = {
     },
 
     // Add reading to a subject
-    addReading: async ( subjectId, readingData) => {
+    addReading: async (subjectId, readingData) => {
         try {
             const response = await subjectApi.addReading(subjectId, readingData);
             if (response.status !== 201) {
@@ -214,7 +108,7 @@ export const subjectService = {
     },
 
     // Edit reading in a subject
-    editReading: async ( subjectId, readingId, readingData) => {
+    editReading: async (subjectId, readingId, readingData) => {
         try {
             const response = await subjectApi.updateReading(subjectId, readingId, readingData);
             if (response.status !== 200) {
@@ -228,7 +122,7 @@ export const subjectService = {
     },
 
     // Delete reading from a subject
-    deleteReading: async ( subjectId, readingId) => {
+    deleteReading: async (subjectId, readingId) => {
         try {
             const response = await subjectApi.deleteReading(subjectId, readingId);
             if (response.status !== 200) {
@@ -242,7 +136,7 @@ export const subjectService = {
     },
 
     // Add assignment to a subject
-    addAssignment: async ( subjectId, assignmentData) => {
+    addAssignment: async (subjectId, assignmentData) => {
         try {
             const response = await subjectApi.addAssignment(subjectId, assignmentData);
             if (response.status !== 201) {
@@ -256,7 +150,7 @@ export const subjectService = {
     },
 
     // Edit assignment in a subject
-    editAssignment: async ( subjectId, assignmentId, assignmentData) => {
+    editAssignment: async (subjectId, assignmentId, assignmentData) => {
         try {
             const response = await subjectApi.updateAssignment(subjectId, assignmentId, assignmentData);
             if (response.status !== 200) {
@@ -270,7 +164,7 @@ export const subjectService = {
     },
 
     // Delete assignment from a subject
-    deleteAssignment: async ( subjectId, assignmentId) => {
+    deleteAssignment: async (subjectId, assignmentId) => {
         try {
             const response = await subjectApi.deleteAssignment(subjectId, assignmentId);
             if (response.status !== 200) {
@@ -284,7 +178,7 @@ export const subjectService = {
     },
 
     // Add note to a subject
-    addNote: async ( subjectId, noteData) => {
+    addNote: async (subjectId, noteData) => {
         try {
             const response = await subjectApi.addNote(subjectId, noteData);
             if (response.status !== 201) {
@@ -298,7 +192,7 @@ export const subjectService = {
     },
 
     // Edit note in a subject
-    editNote: async ( subjectId, noteId, noteData) => {
+    editNote: async (subjectId, noteId, noteData) => {
         try {
             const response = await subjectApi.updateNote(subjectId, noteId, noteData);
             if (response.status !== 200) {
@@ -312,7 +206,7 @@ export const subjectService = {
     },
 
     // Delete note from a subject
-    deleteNote: async ( subjectId, noteId) => {
+    deleteNote: async (subjectId, noteId) => {
         try {
             const response = await subjectApi.deleteNote(subjectId, noteId);
             if (response.status !== 200) {
